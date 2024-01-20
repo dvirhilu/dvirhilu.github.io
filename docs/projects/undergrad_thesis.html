@@ -1,3 +1,9 @@
+---
+layout: default
+---
+  
+<!doctype html>
+
 <h1>
     Undergraduate Thesis - An Architecture to Allow Direct File-System Access on GPU
 </h1>
@@ -9,15 +15,19 @@
 <h2>
     Background Information
 </h2>
-The group identified a bottle neck in many modern workloads which require massive parallelization and data handling: Many of these workloads operate largely on specialized processors (such as GPUs), and use a centralized CPU only to coordinate between subsystems and facilitate data transfers. Noting that many periferals today have their own processors (SSDs, smart NICs, memory), the group envisioned a decentralized, CPU-less system, in which independent, specialized devices communicate together to execute workloads.
 
-As a first step to this vision, the team wanted to explore the possibility of direct communication between a GPU and a file system implemented in the SSD. As a proof of concept, a hardware emulator was used to simulate the external file system, and I worked on starting the implementation of direct file access on the GPU side.
+<p>
+    The group identified a bottle neck in many modern workloads which require massive parallelization and data handling: Many of these workloads operate largely on specialized processors (such as GPUs), and use a centralized CPU only to coordinate between subsystems and facilitate data transfers. Noting that many periferals today have their own processors (SSDs, smart NICs, memory), the group envisioned a decentralized, CPU-less system, in which independent, specialized devices communicate together to execute workloads.
 
-As I only had a few months for the thesis, I prioritized coming up with an architecture that accomplish the task on the GPU, and writing a simple proof of concept code for how this architecture that would interact with the hardware emulator.
+    As a first step to this vision, the team wanted to explore the possibility of direct communication between a GPU and a file system implemented in the SSD. As a proof of concept, a hardware emulator was used to simulate the external file system, and I worked on starting the implementation of direct file access on the GPU side.
 
-Before giving a brief explanation of the architecture, here is some basic, relevant information about the architecture of a GPU:
+    As I only had a few months for the thesis, I prioritized coming up with an architecture that accomplish the task on the GPU, and writing a simple proof of concept code for how this architecture that would interact with the hardware emulator.
 
-The GPU is made up of a large number of simple processors (think an army of babies). To handle 
+    Before giving a brief explanation of the architecture, here is some basic, relevant information about the architecture of a GPU:
+
+    The GPU is made up of a large number of simple processors (think an army of babies). To handle 
+
+</p>
 
 <h2>
     Summary of the Proposed Architecture
