@@ -5,4 +5,8 @@ Starting in late January 2022, I joined Dr. Alexandra (Sasha) Fedorova's researc
 
 As a first step to this vision, the team wanted to explore the possibility of direct communication between a GPU, 
 
-<object data="embedations/undergrad_thesis.pdf" width="1000" height="1000" type='application/pdf'></object>
+<object data="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf" type="application/pdf" width="700px" height="700px">
+    <embed src="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf">
+        <p>This browser does not support PDFs. Please download the PDF to view it: <a href="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf">Download PDF</a>.</p>
+    </embed>
+</object>
