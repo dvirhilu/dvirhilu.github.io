@@ -1,8 +1,14 @@
-# Undergraduate Thesis - An Architecture to Allow Direct File-System Access on GPU
+<h1>
+    Undergraduate Thesis - An Architecture to Allow Direct File-System Access on GPU
+</h1>
 
-Starting in late January 2022, I joined Dr. Alexandra (Sasha) Fedorova's research group to complete an undergraduate thesis. This page contains a brief summary of the work, and the paper is embedded at the bottom.
+<p>
+    Starting in late January 2022, I joined Dr. Alexandra (Sasha) Fedorova's research group to complete an undergraduate thesis. This page contains a brief summary of the work, and the paper is embedded at the bottom.
+</p>
 
-## Background Information
+<h2>
+    Background Information
+</h2>
 The group identified a bottle neck in many modern workloads which require massive parallelization and data handling: Many of these workloads operate largely on specialized processors (such as GPUs), and use a centralized CPU only to coordinate between subsystems and facilitate data transfers. Noting that many periferals today have their own processors (SSDs, smart NICs, memory), the group envisioned a decentralized, CPU-less system, in which independent, specialized devices communicate together to execute workloads.
 
 As a first step to this vision, the team wanted to explore the possibility of direct communication between a GPU and a file system implemented in the SSD. As a proof of concept, a hardware emulator was used to simulate the external file system, and I worked on starting the implementation of direct file access on the GPU side.
@@ -13,10 +19,14 @@ Before giving a brief explanation of the architecture, here is some basic, relev
 
 The GPU is made up of a large number of simple processors (think an army of babies). To handle 
 
-## Summary of the Proposed Architecture
+<h2>
+    Summary of the Proposed Architecture
+</h2>
 
 
-## Undergraduate Thesis Paper
+<h2>
+    Undergraduate Thesis Paper
+</h2>
 
 <object data="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf" type="application/pdf" width="700px" height="700px">
     <embed src="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf">
