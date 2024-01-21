@@ -1,16 +1,53 @@
----
-layout: default
----
-  
-<!doctype html>
+<!--Default HTML5 setup-->
+<!DOCTYPE html>
+<html lang="en">
 
-<h1>
-    Dvir Hilu
-</h1>
+<!--Defines metadata-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--Title for the page-->
+    <title>Dvir Hilu Portfolio Homepage</title>
+    <!--stylesheet reference-->
+    <link rel="stylesheet" href="css/style.css">
+    <!--icons reference-->
+    <script src="https://kit.fontawesome.com/220fe8c60c.js" crossorigin="anonymous"></script>
+</head>
 
-<button 
-    onclick="window.location.href='https://dvirhilu.github.io/projects/undergrad_thesis.html'"
-    type=button
->   
-    Undergraduate Thesis
-</button>
+<body>
+    <!--Navigation panel start-->
+    <nav>
+        <section class="admin-panel" aria-label="adminPanel">
+
+            <button id="btnPanel" class="btn-panel" onclick="togglePanel('adminPanel',250,150,100);">Navigation</button>
+            <button 
+                onclick="window.location.href='https://dvirhilu.github.io/projects/undergrad_thesis.html'"
+                type=button
+                >   
+            Undergraduate Thesis
+            </button>
+
+            <div id="adminPanel" class="sidebar" style="width: 0px;">
+                <div style="margin: 70px 0;"></div>
+                <!--If you want these icons there are a whole bunch on this website:https://fontawesome.com/search?o=r&m=free-->
+                <!--To add an icon, go to the site and click on one you like. It will show you an <i> tag that you can then copy and put where ever you want-->
+                <a id="AdminLink1" href="index.html" name="adminLink">
+                    <i class="fa-solid fa-code"></i> Placeholder 1
+                </a>
+                <a id="AdminLink2" href="index.html" name="adminLink">
+                    <i class="fa-solid fa-globe"></i> Placeholder 2
+                </a>
+                <!--If you want to add more links, copy/paste one of these <a> tags-->
+                <a id="AdminLink4" href="index.html" name="adminLink">
+                    <i class="fa-solid fa-user"></i> Placeholder 3
+                </a>
+            </div>
+        </section>
+    </nav>
+    <div style="margin: 70px 0;"></div>
+    <!--Navigation panel end-->
+    <h1>Test</h1>
+</body>
+<!--Script tag-->
+<script src="js/panel.js"></script>
+</html>
