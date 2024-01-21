@@ -20,22 +20,41 @@ layout: default
     The group identified a bottle neck in many modern workloads which require massive parallelization and data handling: Many of these workloads operate largely on specialized processors (such as GPUs), and use a centralized CPU only to coordinate between subsystems and facilitate data transfers. Noting that many periferals today have their own processors (SSDs, smart NICs, memory), the group envisioned a decentralized, CPU-less system, in which independent, specialized devices communicate together to execute workloads.
 </p>
 <p>
-    As a first step to this vision, the team wanted to explore the possibility of direct communication between a GPU and a file system implemented in the SSD. As a proof of concept, a hardware emulator was used to simulate the external file system, and I worked on starting the implementation of direct file access on the GPU side.
+    As a first step to this vision, the team wanted to explore the possibility of direct communication over shared memory between a GPU and a file system implemented in the SSD. As a proof of concept, a hardware emulator was used to simulate the external file system, and I worked on starting the implementation of direct file access on the GPU side.
 </p>
 <p>
     As I only had a few months for the thesis, I prioritized coming up with an architecture that accomplish the task on the GPU, and writing a simple proof of concept code for how this architecture that would interact with the hardware emulator.
 </p>
 <p>
-    Before giving a brief explanation of the architecture, here is some basic, relevant information about the architecture of a GPU:
+    Before giving a brief explanation of the architecture, here is some basic, relevant information about the architecture of a GPU: 
 </p>
 <p>
-    The GPU is made up of a large number of simple processors (think an army of babies). To handle 
+    NVIDIA GPUs are made up of a large number of simple 32-core processors called <b>SMs</b>, with each core running its own <b>thread</b>. Under the CUDA programming model, threads are divided into <b>blocks</b>, with each block only running on a single SM for the entire lifetime of the program. If there are more than 32 threads in a block, they are further divided into 32-thread groups called <b>warps</b>. Threads in the same warp always execute concurently on the SM. All cores within a single SM run the same instruction. As a result, if threads within a warp do not execute the same instruction due to conditional branching, their execution is serialized. This is called <b>thread divergence</b>.
 </p>
 
 <h2>
     Summary of the Proposed Architecture
 </h2>
 
+<h3>
+    Interface Layer
+</h3>
+
+<h3>
+    Unified Memory
+</h3>
+
+<h3>
+    FUSE Layer
+</h3>
+
+<h3>
+    Driver Layer
+</h3>
+
+<h2>
+    Example Flow for g_read Command
+</h2>
 
 <h2>
     Undergraduate Thesis Paper
