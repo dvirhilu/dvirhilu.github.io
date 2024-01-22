@@ -17,10 +17,10 @@ layout: default
 </h2>
 
 <p>
-    The group identified a bottle neck in many modern workloads which require massive parallelization and data handling: Many of these workloads operate largely on specialized processors (such as GPUs), and use a centralized CPU only to coordinate between subsystems and facilitate data transfers. Noting that many periferals today have their own processors (SSDs, smart NICs, memory), the group envisioned a decentralized, CPU-less system, in which independent, specialized devices communicate together to execute workloads.
+    The group identified a bottle neck in many modern workloads which require massive parallelization and data handling: Many of these workloads operate largely on specialized hardware accelerators (such as GPUs), and use a centralized CPU only to coordinate between subsystems and facilitate data transfers. Noting that many periferals today have their own processors (SSDs, smart NICs, memory), the group envisioned a decentralized, CPU-less system, in which independent devices communicate together to execute workloads.
 </p>
 <p>
-    As a first step to this vision, the team wanted to explore the possibility of direct communication over shared memory between a GPU and a file system implemented in the SSD. As a proof of concept, a hardware emulator was used to simulate the external file system, and I worked on starting the implementation of direct file access on the GPU side.
+    As a first step to this vision, the team wanted to explore the possibility of direct communication over unified memory between a GPU and a file system implemented in the SSD. As a proof of concept, a hardware emulator was used to simulate the external file system, and I worked on starting the implementation of direct file access on the GPU side.
 </p>
 <p>
     As I only had a few months for the thesis, I prioritized coming up with an architecture that accomplish the task on the GPU, and writing a simple proof of concept code for how this architecture that would interact with the hardware emulator.
@@ -62,6 +62,10 @@ layout: default
         VirtioFS Architecture from the GPU's perspective.
     </figcaption>
 </img>
+
+<p>
+
+</p>
 
 <h3>
     Interface Layer
@@ -115,8 +119,34 @@ layout: default
 </p>
 
 <h3>
-    Unified Memory
+    Unified Memory Allocation
 </h3>
+
+<p>
+    The data transfer and communication between the GPU and SSD (or emulator) is done via unified memory, accessible from both devices. In work done before I joined, it was decided to follow <a href="https://docs.oasis-open.org/virtio/virtio/v1.1/csprd01/virtio-v1.1-csprd01.html#x1-30001">Virtio</a>, a standard for I/O communication used mostly in virtual machines. The communication protocol operates over unified memory, with a section dedicated to an I/O command queue (where Virtio commands are placed and the handshake happens. This will likely be replaced in the future with bus commands), and a unified memory buffer used for bulk data transfers.
+</p>
+
+<p>
+    The unified memory buffer is further split into virtio queues (virtqueues) and command buffers. Virtqueues are a queue structure where device specific commands are placed. In this case, the virtqueues hold the file system specific commands. Any data that is transfered between the devices will be contained in the command buffers, and will be pointed to by the virtqueue entry. An example of the SSD would tranverse the unified memory on a read command is shown in the diagram below.
+</p>
+
+<img 
+    src="images/virtio_comm_flow.png" 
+    alt="How SSD might tranverse unified memory for read command" 
+    style="width:800px"
+>
+    <figcaption>
+        Simplified view of how SSD might tranverse unified memory for read command. Starting at with the IO command, the device traverses the linked virtqueue entries and retrieves data from the command buffer. 
+    </figcaption>
+</img>
+
+<p>
+    An important design decision I took here was to dedicate an individual virtqueue and buffer to each block in the program. If blocks were to access a shared virtqueue, accesses to the virtqueue would have to be synchronized. Allowing each block to have its own virtqueue and buffer space fully exploits the parallelism of the GPU and allows file system action to occur asynchronously from the perspective of the GPU.
+</p>
+
+<p>
+    At initialization, each block is allocated the maximum transfer size negotiated by the SSD device. If the total allocated memory would exceed available memory, total memory is divided evenly amongst blocks. The obvious tradeoff here is that as the number of blocks increases, the largest amount of data in a single transfer is decreased. Note that while this approach is sufficient for the research teams applications of interest, CUDA in theory allows for a ridicuolously large number of blocks for each program. In the future, further research is required into how exactly to optimize between the partition size of unified memory and the number of blocks sharing a partition. That's an interesting question but I definitely did not have enough time to tackle this in the 5 months I worked on my thesis.
+</p>
 
 <h3>
     FUSE Layer
