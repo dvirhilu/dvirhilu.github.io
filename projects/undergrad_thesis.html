@@ -51,12 +51,68 @@ layout: default
 </p>
 
 <h2>
-    Summary of the Proposed Architecture
+    Summary of the Proposed Architecture for VirtioFS
 </h2>
+<img 
+    src="images/virtiofs_arch.png" 
+    alt="VirtioFS Architecture from the GPU's perspective." 
+    style="width:800px"
+>
+    <figcaption>
+        VirtioFS Architecture from the GPU's perspective.
+    </figcaption>
+</img>
 
 <h3>
     Interface Layer
 </h3>
+
+<p>
+    The interface layer of VirtioFS, which is exposed to the user, provides the usual POSIX-like semantics for file system operations. The functions implemented for the proof-of-concept VirtioFS are shown in the table below:
+</p>
+
+<table>
+    <tr>
+        <th>API Function</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>g readdir</td>
+        <td>open current directory and read its contents</td>
+    </tr>
+    <tr>
+        <td>g open</td>
+        <td>open file and add its file descriptor to the current block's file table</td>
+    </tr>
+    <tr>
+        <td>g close</td>
+        <td>close file and remove its file descriptor from the current block's file table</td>
+    </tr>
+    <tr>
+        <td>g fstat</td>
+        <td>query the size of the file</td>
+    </tr>
+    <tr>
+        <td>g read</td>
+        <td>read file and increment seek pointer by amount read</td>
+    </tr>
+    <tr>
+        <td>g write</td>
+        <td>write to file and increment seek pointer by amount written</td>
+    </tr>
+    <tr>
+        <td>g lseek</td>
+        <td>Change the position of the file's seek pointer</td>
+    </tr>
+    <tr>
+        <td>g dup2</td>
+        <td>Duplicate the file descriptor, allowing to track separate seek pointers in the file</td>
+    </tr>
+</table>
+
+<p>
+    The major difference between the CPU file API and the VirtioFS interface is that VirtioFS does not allow all threads to open files independently of each other. Due to the architecture of the GPU, allowing each thread to open a different file would result in thread divergence, causing a huge bottle neck by serializing each file operation in the warp. Instead, VirtioFS allows independent calls only at warp-level, and requires that all threads within a warp call the same VirtioFS function with the exact same parameters. Note that for the simplicity, the proof-of-concept implementation only allowed block-level independence.
+</p>
 
 <h3>
     Unified Memory
