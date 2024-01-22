@@ -28,8 +28,26 @@ layout: default
 <p>
     Before giving a brief explanation of the architecture, here is some basic, relevant information about the architecture of a GPU: 
 </p>
+<h3>
+    GPU Hardware Architecture
+</h3>
+
+<img 
+    src="images/GPU_arch.png" 
+    alt="GPU hardware architecture" 
+    style="width:500px"
+>
+    <figcaption>
+        GPU hardware architecture.
+    </figcaption>
+</img>
+
 <p>
     NVIDIA GPUs are made up of a large number of simple 32-core processors called <b>SMs</b>, with each core running its own <b>thread</b>. Under the CUDA programming model, threads are divided into <b>blocks</b>, with each block only running on a single SM for the entire lifetime of the program. If there are more than 32 threads in a block, they are further divided into 32-thread groups called <b>warps</b>. Threads in the same warp always execute concurently on the SM. All cores within a single SM run the same instruction. As a result, if threads within a warp do not execute the same instruction due to conditional branching, their execution is serialized. This is called <b>thread divergence</b>.
+</p>
+
+<p>
+    In terms of memory architecture, NVIDIA GPUs have an L1 cache, and L2 cache, and RAM (there are also texture and constant memory but these were not used for this project). The L1 cache is located within the SMs, while the L2 and RAM are shared by all SMs. The L1 cache cache space is split, with half of it used as a proper cache, while the other half is available to the programmer and is called <b>shared memory</b>. Anything stored in shared memory is shared by and only available to threads within a specific block. Since shared memory is located inside the SM itself, it is smaller but significantly faster than RAM. Alternatively, the programmer can also store data in RAM, or <b>global memory</b>, which is shared across all SMs.
 </p>
 
 <h2>
