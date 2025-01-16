@@ -1,8 +1,39 @@
----
-layout: default
----
+<!--Default HTML5 setup-->
+<!DOCTYPE html>
+<html lang="en">
 
-<!doctype html>
+<!--Defines metadata-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--Title for the page-->
+    <title>Dvir Hilu Portfolio Homepage</title>
+    <!--stylesheet reference-->
+    <link rel="stylesheet" href="css/globals.css">
+    <link rel="stylesheet" href="css/style.css">
+    <!--icons reference-->
+    <script src="https://kit.fontawesome.com/220fe8c60c.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <!--Nav-->
+    <div id="navContainer" class="nav-container flex-container">
+        <i id="btnCloseNav" class="fa-solid fa-x flex-container" style="color: white"></i>
+        <ul class="flex-container">
+            <li><a href="index.html">Home Page</a></li>
+            <li><a href="about-me.html">About Me</a></li>
+            <li class="dropdown">
+                <button class="dropdownbtn">Projects <i class="nav-arrow"></i></button>
+                <div class="dropdown-content">
+                    <a href="projects/capstone1.html">Capstone 1</a>
+                    <a href="projects/multi_image_reconstruction.html">MIR</a>
+                    <a href="projects/undergrad_thesis.html">Undergrad Thesis</a>
+                </div>
+            </li>
+        </ul>
+    </div>
+    <i id="btnOpenNav" class="fa-solid fa-bars open-nav flex-container hide" style="color: white"></i>
+
 
 <h1>
     Undergraduate Thesis - An Architecture to Allow Direct File-System Access on GPU
