@@ -1,7 +1,7 @@
 ---
 layout: default
 ---
-  
+
 <!doctype html>
 
 <h1>
@@ -9,7 +9,8 @@ layout: default
 </h1>
 
 <p>
-    Starting in late January 2022, I joined Dr. Alexandra (Sasha) Fedorova's research group to complete an undergraduate thesis. This page contains a brief summary of the work, and the paper is embedded at the bottom.
+    Starting in late January 2022, I joined Dr. Alexandra (Sasha) Fedorova's research group to complete an undergraduate
+    thesis. This page contains a brief summary of the work, and the paper is embedded at the bottom.
 </p>
 
 <h2>
@@ -17,50 +18,64 @@ layout: default
 </h2>
 
 <p>
-    The group identified a bottle neck in many modern workloads which require massive parallelization and data handling: Many of these workloads operate largely on specialized hardware accelerators (such as GPUs), and use a centralized CPU only to coordinate between subsystems and facilitate data transfers. Noting that many periferals today have their own processors (SSDs, smart NICs, memory), the group envisioned a decentralized, CPU-less system, in which independent devices communicate together to execute workloads.
+    The group identified a bottle neck in many modern workloads which require massive parallelization and data handling:
+    Many of these workloads operate largely on specialized hardware accelerators (such as GPUs), and use a centralized
+    CPU only to coordinate between subsystems and facilitate data transfers. Noting that many periferals today have
+    their own processors (SSDs, smart NICs, memory), the group envisioned a decentralized, CPU-less system, in which
+    independent devices communicate together to execute workloads.
 </p>
 <p>
-    As a first step to this vision, the team wanted to explore the possibility of direct communication over unified memory between a GPU and a file system implemented in the SSD. As a proof of concept, a hardware emulator was used to simulate the external file system, and I worked on starting the implementation of direct file access on the GPU side.
+    As a first step to this vision, the team wanted to explore the possibility of direct communication over unified
+    memory between a GPU and a file system implemented in the SSD. As a proof of concept, a hardware emulator was used
+    to simulate the external file system, and I worked on starting the implementation of direct file access on the GPU
+    side.
 </p>
 <p>
-    As I only had a few months for the thesis, I prioritized coming up with an architecture that accomplish the task on the GPU, and writing a simple proof of concept code for how this architecture that would interact with the hardware emulator.
+    As I only had a few months for the thesis, I prioritized coming up with an architecture that accomplish the task on
+    the GPU, and writing a simple proof of concept code for how this architecture that would interact with the hardware
+    emulator.
 </p>
 <p>
-    Before giving a brief explanation of the architecture, here is some basic, relevant information about the architecture of a GPU: 
+    Before giving a brief explanation of the architecture, here is some basic, relevant information about the
+    architecture of a GPU:
 </p>
 <h3>
     GPU Hardware Architecture
 </h3>
 
-<img 
-    src="images/GPU_arch.png" 
-    alt="GPU hardware architecture" 
-    style="width:800px"
->
-    <figcaption>
-        GPU hardware architecture.
-    </figcaption>
+<img src="images/GPU_arch.png" alt="GPU hardware architecture" style="width:800px">
+<figcaption>
+    GPU hardware architecture.
+</figcaption>
 </img>
 
 <p>
-    NVIDIA GPUs are made up of a large number of simple 32-core processors called <b>SMs</b>, with each core running its own <b>thread</b>. Under the CUDA programming model, threads are divided into <b>blocks</b>, with each block only running on a single SM for the entire lifetime of the program. If there are more than 32 threads in a block, they are further divided into 32-thread groups called <b>warps</b>. Threads in the same warp always execute concurently on the SM. All cores within a single SM run the same instruction. As a result, if threads within a warp do not execute the same instruction due to conditional branching, their execution is serialized. This is called <b>thread divergence</b>.
+    NVIDIA GPUs are made up of a large number of simple 32-core processors called <b>SMs</b>, with each core running its
+    own <b>thread</b>. Under the CUDA programming model, threads are divided into <b>blocks</b>, with each block only
+    running on a single SM for the entire lifetime of the program. If there are more than 32 threads in a block, they
+    are further divided into 32-thread groups called <b>warps</b>. Threads in the same warp always execute concurently
+    on the SM. All cores within a single SM run the same instruction. As a result, if threads within a warp do not
+    execute the same instruction due to conditional branching, their execution is serialized. This is called <b>thread
+        divergence</b>.
 </p>
 
 <p>
-    In terms of memory architecture, NVIDIA GPUs have an L1 cache, and L2 cache, and RAM (there are also texture and constant memory but these were not used for this project). The L1 cache is located within the SMs, while the L2 and RAM are shared by all SMs. The L1 cache cache space is split, with half of it used as a proper cache, while the other half is available to the programmer and is called <b>shared memory</b>. Anything stored in shared memory is shared by and only available to threads within a specific block. Since shared memory is located inside the SM itself, it is smaller but significantly faster than RAM. Alternatively, the programmer can also store data in RAM, or <b>global memory</b>, which is shared across all SMs.
+    In terms of memory architecture, NVIDIA GPUs have an L1 cache, and L2 cache, and RAM (there are also texture and
+    constant memory but these were not used for this project). The L1 cache is located within the SMs, while the L2 and
+    RAM are shared by all SMs. The L1 cache cache space is split, with half of it used as a proper cache, while the
+    other half is available to the programmer and is called <b>shared memory</b>. Anything stored in shared memory is
+    shared by and only available to threads within a specific block. Since shared memory is located inside the SM
+    itself, it is smaller but significantly faster than RAM. Alternatively, the programmer can also store data in RAM,
+    or <b>global memory</b>, which is shared across all SMs.
 </p>
 
 <h2>
     Summary of the Proposed Architecture for VirtioFS
 </h2>
-<img 
-    src="images/virtiofs_arch.png" 
-    alt="VirtioFS Architecture from the GPU's perspective." 
-    style="width:800px"
->
-    <figcaption>
-        VirtioFS Architecture from the GPU's perspective.
-    </figcaption>
+<img src="images/virtiofs_arch.png" alt="VirtioFS Architecture from the GPU's perspective." style="width:800px">
+<figcaption>
+    VirtioFS Architecture from the GPU's perspective.
+</figcaption>
 </img>
 
 <p>
@@ -72,7 +87,8 @@ layout: default
 </h3>
 
 <p>
-    The interface layer of VirtioFS, which is exposed to the user, provides the usual POSIX-like semantics for file system operations. The functions implemented for the proof-of-concept VirtioFS are shown in the table below:
+    The interface layer of VirtioFS, which is exposed to the user, provides the usual POSIX-like semantics for file
+    system operations. The functions implemented for the proof-of-concept VirtioFS are shown in the table below:
 </p>
 
 <table>
@@ -115,7 +131,12 @@ layout: default
 </table>
 
 <p>
-    The major difference between the CPU file API and the VirtioFS interface is that VirtioFS does not allow all threads to open files independently of each other. Due to the architecture of the GPU, allowing each thread to open a different file would result in thread divergence, causing a huge bottle neck by serializing each file operation in the warp. Instead, VirtioFS allows independent calls only at warp-level, and requires that all threads within a warp call the same VirtioFS function with the exact same parameters. Note that for the simplicity, the proof-of-concept implementation only allowed block-level independence.
+    The major difference between the CPU file API and the VirtioFS interface is that VirtioFS does not allow all threads
+    to open files independently of each other. Due to the architecture of the GPU, allowing each thread to open a
+    different file would result in thread divergence, causing a huge bottle neck by serializing each file operation in
+    the warp. Instead, VirtioFS allows independent calls only at warp-level, and requires that all threads within a warp
+    call the same VirtioFS function with the exact same parameters. Note that for the simplicity, the proof-of-concept
+    implementation only allowed block-level independence.
 </p>
 
 <h3>
@@ -123,29 +144,46 @@ layout: default
 </h3>
 
 <p>
-    The data transfer and communication between the GPU and SSD (or emulator) is done via unified memory, accessible from both devices. In work done before I joined, it was decided to follow <a href="https://docs.oasis-open.org/virtio/virtio/v1.1/csprd01/virtio-v1.1-csprd01.html#x1-30001">Virtio</a>, a standard for I/O communication used mostly in virtual machines. The communication protocol operates over unified memory, with a section dedicated to an I/O command queue (where Virtio commands are placed and the handshake happens. This will likely be replaced in the future with bus commands), and a unified memory buffer used for bulk data transfers.
+    The data transfer and communication between the GPU and SSD (or emulator) is done via unified memory, accessible
+    from both devices. In work done before I joined, it was decided to follow <a
+        href="https://docs.oasis-open.org/virtio/virtio/v1.1/csprd01/virtio-v1.1-csprd01.html#x1-30001">Virtio</a>, a
+    standard for I/O communication used mostly in virtual machines. The communication protocol operates over unified
+    memory, with a section dedicated to an I/O command queue (where Virtio commands are placed and the handshake
+    happens. This will likely be replaced in the future with bus commands), and a unified memory buffer used for bulk
+    data transfers.
 </p>
 
 <p>
-    The unified memory buffer is further split into virtio queues (virtqueues) and command buffers. Virtqueues are a queue structure where device specific commands are placed. In this case, the virtqueues hold the file system specific commands. Any data that is transfered between the devices will be contained in the command buffers, and will be pointed to by the virtqueue entry. An example of the SSD would tranverse the unified memory on a read command is shown in the diagram below.
+    The unified memory buffer is further split into virtio queues (virtqueues) and command buffers. Virtqueues are a
+    queue structure where device specific commands are placed. In this case, the virtqueues hold the file system
+    specific commands. Any data that is transfered between the devices will be contained in the command buffers, and
+    will be pointed to by the virtqueue entry. An example of the SSD would tranverse the unified memory on a read
+    command is shown in the diagram below.
 </p>
 
-<img 
-    src="images/virtio_comm_flow.png" 
-    alt="How SSD might tranverse unified memory for read command" 
-    style="width:800px"
->
-    <figcaption>
-        Simplified view of how SSD might tranverse unified memory for read command. Starting at with the IO command, the device traverses the linked virtqueue entries and retrieves data from the command buffer. 
-    </figcaption>
+<img src="images/virtio_comm_flow.png" alt="How SSD might tranverse unified memory for read command"
+    style="width:800px">
+<figcaption>
+    Simplified view of how SSD might tranverse unified memory for read command. Starting at with the IO command, the
+    device traverses the linked virtqueue entries and retrieves data from the command buffer.
+</figcaption>
 </img>
 
 <p>
-    An important design decision I took here was to dedicate an individual virtqueue and buffer to each block in the program. If blocks were to access a shared virtqueue, accesses to the virtqueue would have to be synchronized. Allowing each block to have its own virtqueue and buffer space fully exploits the parallelism of the GPU and allows file system action to occur asynchronously from the perspective of the GPU.
+    An important design decision I took here was to dedicate an individual virtqueue and buffer to each block in the
+    program. If blocks were to access a shared virtqueue, accesses to the virtqueue would have to be synchronized.
+    Allowing each block to have its own virtqueue and buffer space fully exploits the parallelism of the GPU and allows
+    file system action to occur asynchronously from the perspective of the GPU.
 </p>
 
 <p>
-    At initialization, each block is allocated the maximum transfer size negotiated by the SSD device. If the total allocated memory would exceed available memory, total memory is divided evenly amongst blocks. The obvious tradeoff here is that as the number of blocks increases, the largest amount of data in a single transfer is decreased. Note that while this approach is sufficient for the research teams applications of interest, CUDA in theory allows for a ridicuolously large number of blocks for each program. In the future, further research is required into how exactly to optimize between the partition size of unified memory and the number of blocks sharing a partition. That's an interesting question but I definitely did not have enough time to tackle this in the 5 months I worked on my thesis.
+    At initialization, each block is allocated the maximum transfer size negotiated by the SSD device. If the total
+    allocated memory would exceed available memory, total memory is divided evenly amongst blocks. The obvious tradeoff
+    here is that as the number of blocks increases, the largest amount of data in a single transfer is decreased. Note
+    that while this approach is sufficient for the research teams applications of interest, CUDA in theory allows for a
+    ridicuolously large number of blocks for each program. In the future, further research is required into how exactly
+    to optimize between the partition size of unified memory and the number of blocks sharing a partition. That's an
+    interesting question but I definitely did not have enough time to tackle this in the 5 months I worked on my thesis.
 </p>
 
 <h3>
@@ -164,8 +202,10 @@ layout: default
     Undergraduate Thesis Paper
 </h2>
 
-<object data="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf" type="application/pdf" width="1000px" height="1000px">
+<object data="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf" type="application/pdf"
+    width="1000px" height="1000px">
     <embed src="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf">
-        <p>This browser does not support PDFs. Please download the PDF to view it: <a href="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf">Download PDF</a>.</p>
+    <p>This browser does not support PDFs. Please download the PDF to view it: <a
+            href="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf">Download PDF</a>.</p>
     </embed>
 </object>

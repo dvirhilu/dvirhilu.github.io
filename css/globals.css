@@ -1,0 +1,327 @@
+/* @import url("../fonts/calibri.ttf"); */
+
+:root {
+  --black: #222;
+  --white: #eee;
+  --gray: #666;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/** Global styles here will be automatically applied, can be overritten where used. **/
+
+html {
+  scroll-behavior: smooth;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+}
+
+h1 {
+  color: var(--white);
+  font-size: 3rem;
+}
+
+h2 {
+  color: var(--white);
+  font-size: 2.5rem;
+}
+
+h3 {
+  color: var(--white);
+  font-size: 2rem;
+}
+
+h4 {
+  color: var(--white);
+  font-size: 1.85rem;
+}
+
+h5 {
+  color: var(--white);
+  font-size: 1.6rem;
+}
+
+h6 {
+  color: var(--white);
+  font-size: 1.45rem;
+}
+
+label,
+p {
+  color: var(--white);
+  font-family: "Calibri", sans-serif;
+  font-size: 1.25rem;
+}
+
+a {
+  color: var(--white);
+  font-family: "Calibri", sans-serif;
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--white);
+}
+
+button {
+  border: 1px solid var(--black);
+  border-radius: 16px;
+  color: var(--white);
+  cursor: pointer;
+  font-size: 1.4rem;
+  font-weight: 300;
+  padding: 0.8rem 1.6rem;
+}
+
+button:hover {
+  background-color: var(--white);
+  border: 1px solid var(--black);
+  color: var(--gray);
+}
+
+/** Custom classes for broadly used styles. **/
+/* Nav bar */
+.open-nav {
+  display: none;
+}
+
+.nav-container {
+  align-items: center;
+  background-color: var(--black);
+  border-bottom: 2px dotted var(--white);
+  height: 80px;
+  justify-content: center;
+  margin-bottom: 20px;
+  position: sticky;
+  top: 0;
+  width: 100%;
+}
+
+.nav-container .fa-x {
+  display: none;
+}
+
+.nav-container ul {
+  gap: 48px;
+  list-style-type: none;
+  padding: 0;
+}
+
+.dropdownbtn,
+.nav-container ul li a {
+  color: var(--white);
+  cursor: pointer;
+  font-size: 2rem;
+}
+
+.hide {
+  display: none !important;
+}
+
+.show-flex {
+  display: flex !important;
+}
+
+/* custom dropdown */
+.nav-arrow {
+  border: solid var(--white);
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+  margin: 0 5px;
+  margin-bottom: 5px;
+  padding: 3px;
+  -webkit-transform: rotate(45deg);
+}
+
+.dropdownbtn {
+  background-color: var(--black);
+  border-radius: 0;
+  color: var(--white);
+  font-size: 1.75rem;
+  height: 40px;
+  min-width: 120px;
+  padding: 0;
+}
+
+.dropdown {
+  display: inline-block;
+  font-size: 15px;
+  position: relative;
+}
+
+.dropdown-content {
+  background-color: var(--black);
+  display: block;
+  min-width: 220px;
+  position: absolute;
+  top: -1000px;
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: var(--white);
+  display: block;
+  padding: 12px 16px;
+  text-decoration: none;
+}
+
+.dropdown-content a:hover,
+.dropdown-content a:focus {
+  background-color: var(--black);
+}
+
+.dropdownbtn:hover {
+  background-color: var(--black);
+  color: var(--white);
+}
+
+.dropdownbtn:hover .nav-arrow,
+.dropdownbtn:focus .nav-arrow {
+  transform: rotate(45deg);
+}
+
+.dropdown:hover .dropdown-content,
+.dropdownbtn:focus + .dropdown-content,
+.dropdown-content:focus-within {
+  border: 1px solid var(--gray);
+  top: 40px;
+}
+
+/* flex container */
+.flex-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* image expansion */
+.expand {
+  cursor: zoom-in;
+}
+
+.expanded {
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 0px !important;
+  cursor: zoom-out !important;
+  height: 100vh !important;
+  position: fixed;
+  object-fit: contain !important;
+  bottom: 0;
+  left: 0;
+  width: 100vw !important;
+  z-index: 1000;
+}
+
+/* Media Queries */
+@media only screen and (max-width: 1090px) {
+  h1 {
+    font-size: 2.25rem;
+  }
+
+  h2 {
+    font-size: 1.85rem;
+  }
+
+  h3 {
+    font-size: 1.6rem;
+  }
+
+  h4 {
+    font-size: 1.45rem;
+  }
+
+  h5 {
+    font-size: 1.25rem;
+  }
+
+  h6 {
+    font-size: 1rem;
+  }
+
+  label,
+  p {
+    font-size: 1rem;
+  }
+
+  .dropdownbtn,
+  .nav-container ul li a {
+    font-size: 1.35rem;
+  }
+
+  .dropdownbtn:hover,
+  .nav-container ul li a:hover {
+    font-size: 1.5rem;
+  }
+
+  .dropdownbtn {
+    height: 20px;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .open-nav {
+    align-items: center;
+    background-color: var(--black);
+    border: 2px solid var(--white);
+    border-radius: 100%;
+    cursor: pointer;
+    display: flex;
+    font-size: 1.4rem;
+    height: 40px;
+    justify-content: center;
+    position: sticky;
+    top: 16px;
+    left: calc(100% - 46px);
+    width: 40px;
+  }
+
+  .nav-container {
+    display: none;
+    height: auto;
+    padding: 32px;
+  }
+
+  .nav-container .fa-x {
+    align-content: center;
+    border: 2px solid var(--white);
+    border-radius: 100%;
+    cursor: pointer;
+    display: flex;
+    height: 30px;
+    justify-content: center;
+    position: absolute;
+    top: 22px;
+    right: 10px;
+    width: 30px;
+  }
+
+  .nav-container ul {
+    align-items: center;
+    flex-direction: column;
+  }
+  .nav-container ul li a {
+    font-size: 1.75rem;
+  }
+
+  .nav-container ul li a:hover {
+    font-size: 2rem;
+  }
+}
+
+@media only screen and (max-width: 440px) {
+  .nav-container ul li a {
+    border-bottom: none;
+    font-size: 1.75rem;
+  }
+}
