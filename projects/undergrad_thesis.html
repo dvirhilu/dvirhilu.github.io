@@ -17,19 +17,16 @@ layout: default
 </h2>
 
 <p>
-    The group identified a bottle neck in many modern workloads which require massive parallelization and data handling: Many of these workloads operate largely on specialized hardware accelerators (such as GPUs), and use a centralized CPU only to coordinate between subsystems and facilitate data transfers. Noting that many periferals today have their own processors (SSDs, smart NICs, memory), the group envisioned a decentralized, CPU-less system, in which independent devices communicate together to execute workloads.
+    The group identified a bottle neck in many modern workloads which require massive parallelization and data handling: Many of these workloads operate largely on specialized hardware accelerators (such as GPUs), and use a centralized CPU only to coordinate between subsystems and facilitate data transfers. Noting that many peripherals today have their own processors (SSDs, smart NICs, memory), the group envisioned a decentralized, CPU-less system, in which independent devices communicate together to execute workloads.
 </p>
 <p>
-    As a first step to this vision, the team wanted to explore the possibility of direct communication over unified memory between a GPU and a file system implemented in the SSD. As a proof of concept, a hardware emulator was used to simulate the external file system, and I worked on starting the implementation of direct file access on the GPU side.
+    As a first step to this vision, the team wanted to explore the possibility of direct communication over unified memory between a GPU and a file system implemented in the SSD. As a proof of concept, a hardware emulator was used to simulate the external file system, and I started the implementation of direct file access on the GPU side (named VirtioFS). I only had a few months for the thesis, so I prioritized coming up with an architecture that can accomplish the task on the GPU, and writing simple proof of concept code for how this architecture that would interact with the hardware emulator.
 </p>
 <p>
-    As I only had a few months for the thesis, I prioritized coming up with an architecture that accomplish the task on the GPU, and writing a simple proof of concept code for how this architecture that would interact with the hardware emulator.
-</p>
-<p>
-    Before giving a brief explanation of the architecture, here is some basic, relevant information about the architecture of a GPU: 
+    Before explaining the architecture, here are a few definitions relating to the GPU execution model that will be relevant for later sections: 
 </p>
 <h3>
-    GPU Hardware Architecture
+    GPU Hardware Architecture Relevant Definitions
 </h3>
 
 <img 
@@ -42,13 +39,36 @@ layout: default
     </figcaption>
 </img>
 
-<p>
-    NVIDIA GPUs are made up of a large number of simple 32-core processors called <b>SMs</b>, with each core running its own <b>thread</b>. Under the CUDA programming model, threads are divided into <b>blocks</b>, with each block only running on a single SM for the entire lifetime of the program. If there are more than 32 threads in a block, they are further divided into 32-thread groups called <b>warps</b>. Threads in the same warp always execute concurently on the SM. All cores within a single SM run the same instruction. As a result, if threads within a warp do not execute the same instruction due to conditional branching, their execution is serialized. This is called <b>thread divergence</b>.
-</p>
-
-<p>
-    In terms of memory architecture, NVIDIA GPUs have an L1 cache, and L2 cache, and RAM (there are also texture and constant memory but these were not used for this project). The L1 cache is located within the SMs, while the L2 and RAM are shared by all SMs. The L1 cache cache space is split, with half of it used as a proper cache, while the other half is available to the programmer and is called <b>shared memory</b>. Anything stored in shared memory is shared by and only available to threads within a specific block. Since shared memory is located inside the SM itself, it is smaller but significantly faster than RAM. Alternatively, the programmer can also store data in RAM, or <b>global memory</b>, which is shared across all SMs.
-</p>
+<table>
+    <tr>
+        <th>Term</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>Streaming Multiprocessors (SMs)</td>
+        <td>NVIDIA's GPUs are comprised of a large number of these (typically 32-core) processors. All cores within an SM run the same instruction, though the data they operate on could be different. Each SM has its own L1 cache.</td>
+    </tr>
+    <tr>
+        <td>Block</td>
+        <td>Under the CUDA programming model, threads are grouped into blocks. Each block's threads run on a single SM for the entire lifetime of the program. Note that the number of threads in a block can be MUCH larger than the number of cores in an SM.</td>
+    </tr>
+    <tr>
+        <td>Warp</td>
+        <td>A block is further divided into warps, which match in size the number of cores in an SM. Threads in a warp always execute concurrently.</td>
+    </tr>
+    <tr>
+        <td>Thread Divergence</td>
+        <td>Due to the same-instruction model of an SM, if threads in the same warp don't execute the same instruction (i.e. conditional branching), their instruction execution is serialized (one branch executed after the other, NOT concurrently).</td>
+    </tr>
+    <tr>
+        <td>Shared Memory</td>
+        <td>Half of the L1 cache of an SM is allocated as "Shared Memory". Shared memory access is limited to threads in the same block, and provides a small, high-speed memory to use throughout the program.</td>
+    </tr>
+    <tr>
+        <td>Global Memory</td>
+        <td>Global memory is stored in the GPU RAM and can be accessed by ALL threads. As such, it is not thread safe.</td>
+    </tr>
+</table>
 
 <h2>
     Summary of the Proposed Architecture for VirtioFS
@@ -115,7 +135,7 @@ layout: default
 </table>
 
 <p>
-    The major difference between the CPU file API and the VirtioFS interface is that VirtioFS does not allow all threads to open files independently of each other. Due to the architecture of the GPU, allowing each thread to open a different file would result in thread divergence, causing a huge bottle neck by serializing each file operation in the warp. Instead, VirtioFS allows independent calls only at warp-level, and requires that all threads within a warp call the same VirtioFS function with the exact same parameters. Note that for the simplicity, the proof-of-concept implementation only allowed block-level independence.
+    The major difference between the CPU file API and the VirtioFS interface is that VirtioFS does not allow threads to make file-system calls independently of each other. Doing this would result in thread-divergence, causing a huge bottle neck by serializing each file operation in the warp. Instead, VirtioFS requires that all threads within a warp call the same VirtioFS function with the exact same parameters, and utilizes the GPU's parallelism under the hood.
 </p>
 
 <h3>
