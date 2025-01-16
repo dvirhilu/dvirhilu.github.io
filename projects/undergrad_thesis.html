@@ -1,7 +1,7 @@
 ---
 layout: default
 ---
-  
+
 <!doctype html>
 
 <h1>
@@ -9,7 +9,8 @@ layout: default
 </h1>
 
 <p>
-    Starting in late January 2022, I joined Dr. Alexandra (Sasha) Fedorova's research group to complete an undergraduate thesis. This page contains a brief summary of the work, and the paper is embedded at the bottom.
+    Starting in late January 2022, I joined Dr. Alexandra (Sasha) Fedorova's research group to complete an undergraduate
+    thesis. This page contains a brief summary of the work, and the paper is embedded at the bottom.
 </p>
 
 <h2>
@@ -29,14 +30,10 @@ layout: default
     GPU Hardware Architecture Relevant Definitions
 </h3>
 
-<img 
-    src="images/GPU_arch.png" 
-    alt="GPU hardware architecture" 
-    style="width:800px"
->
-    <figcaption>
-        GPU hardware architecture.
-    </figcaption>
+<img src="images/GPU_arch.png" alt="GPU hardware architecture" style="width:800px">
+<figcaption>
+    GPU hardware architecture.
+</figcaption>
 </img>
 
 <table>
@@ -73,14 +70,10 @@ layout: default
 <h2>
     Summary of the Proposed Architecture for VirtioFS
 </h2>
-<img 
-    src="images/virtiofs_arch.png" 
-    alt="VirtioFS Architecture from the GPU's perspective." 
-    style="width:800px"
->
-    <figcaption>
-        VirtioFS Architecture from the GPU's perspective.
-    </figcaption>
+<img src="images/virtiofs_arch.png" alt="VirtioFS Architecture from the GPU's perspective." style="width:800px">
+<figcaption>
+    VirtioFS Architecture from the GPU's perspective.
+</figcaption>
 </img>
 
 <p>
@@ -92,7 +85,8 @@ layout: default
 </h3>
 
 <p>
-    The interface layer of VirtioFS, which is exposed to the user, provides the usual POSIX-like semantics for file system operations. The functions implemented for the proof-of-concept VirtioFS are shown in the table below:
+    The interface layer of VirtioFS, which is exposed to the user, provides the usual POSIX-like semantics for file
+    system operations. The functions implemented for the proof-of-concept VirtioFS are shown in the table below:
 </p>
 
 <table>
@@ -143,29 +137,46 @@ layout: default
 </h3>
 
 <p>
-    The data transfer and communication between the GPU and SSD (or emulator) is done via unified memory, accessible from both devices. In work done before I joined, it was decided to follow <a href="https://docs.oasis-open.org/virtio/virtio/v1.1/csprd01/virtio-v1.1-csprd01.html#x1-30001">Virtio</a>, a standard for I/O communication used mostly in virtual machines. The communication protocol operates over unified memory, with a section dedicated to an I/O command queue (where Virtio commands are placed and the handshake happens. This will likely be replaced in the future with bus commands), and a unified memory buffer used for bulk data transfers.
+    The data transfer and communication between the GPU and SSD (or emulator) is done via unified memory, accessible
+    from both devices. In work done before I joined, it was decided to follow <a
+        href="https://docs.oasis-open.org/virtio/virtio/v1.1/csprd01/virtio-v1.1-csprd01.html#x1-30001">Virtio</a>, a
+    standard for I/O communication used mostly in virtual machines. The communication protocol operates over unified
+    memory, with a section dedicated to an I/O command queue (where Virtio commands are placed and the handshake
+    happens. This will likely be replaced in the future with bus commands), and a unified memory buffer used for bulk
+    data transfers.
 </p>
 
 <p>
-    The unified memory buffer is further split into virtio queues (virtqueues) and command buffers. Virtqueues are a queue structure where device specific commands are placed. In this case, the virtqueues hold the file system specific commands. Any data that is transfered between the devices will be contained in the command buffers, and will be pointed to by the virtqueue entry. An example of the SSD would tranverse the unified memory on a read command is shown in the diagram below.
+    The unified memory buffer is further split into virtio queues (virtqueues) and command buffers. Virtqueues are a
+    queue structure where device specific commands are placed. In this case, the virtqueues hold the file system
+    specific commands. Any data that is transfered between the devices will be contained in the command buffers, and
+    will be pointed to by the virtqueue entry. An example of the SSD would tranverse the unified memory on a read
+    command is shown in the diagram below.
 </p>
 
-<img 
-    src="images/virtio_comm_flow.png" 
-    alt="How SSD might tranverse unified memory for read command" 
-    style="width:800px"
->
-    <figcaption>
-        Simplified view of how SSD might tranverse unified memory for read command. Starting at with the IO command, the device traverses the linked virtqueue entries and retrieves data from the command buffer. 
-    </figcaption>
+<img src="images/virtio_comm_flow.png" alt="How SSD might tranverse unified memory for read command"
+    style="width:800px">
+<figcaption>
+    Simplified view of how SSD might tranverse unified memory for read command. Starting at with the IO command, the
+    device traverses the linked virtqueue entries and retrieves data from the command buffer.
+</figcaption>
 </img>
 
 <p>
-    An important design decision I took here was to dedicate an individual virtqueue and buffer to each block in the program. If blocks were to access a shared virtqueue, accesses to the virtqueue would have to be synchronized. Allowing each block to have its own virtqueue and buffer space fully exploits the parallelism of the GPU and allows file system action to occur asynchronously from the perspective of the GPU.
+    An important design decision I took here was to dedicate an individual virtqueue and buffer to each block in the
+    program. If blocks were to access a shared virtqueue, accesses to the virtqueue would have to be synchronized.
+    Allowing each block to have its own virtqueue and buffer space fully exploits the parallelism of the GPU and allows
+    file system action to occur asynchronously from the perspective of the GPU.
 </p>
 
 <p>
-    At initialization, each block is allocated the maximum transfer size negotiated by the SSD device. If the total allocated memory would exceed available memory, total memory is divided evenly amongst blocks. The obvious tradeoff here is that as the number of blocks increases, the largest amount of data in a single transfer is decreased. Note that while this approach is sufficient for the research teams applications of interest, CUDA in theory allows for a ridicuolously large number of blocks for each program. In the future, further research is required into how exactly to optimize between the partition size of unified memory and the number of blocks sharing a partition. That's an interesting question but I definitely did not have enough time to tackle this in the 5 months I worked on my thesis.
+    At initialization, each block is allocated the maximum transfer size negotiated by the SSD device. If the total
+    allocated memory would exceed available memory, total memory is divided evenly amongst blocks. The obvious tradeoff
+    here is that as the number of blocks increases, the largest amount of data in a single transfer is decreased. Note
+    that while this approach is sufficient for the research teams applications of interest, CUDA in theory allows for a
+    ridicuolously large number of blocks for each program. In the future, further research is required into how exactly
+    to optimize between the partition size of unified memory and the number of blocks sharing a partition. That's an
+    interesting question but I definitely did not have enough time to tackle this in the 5 months I worked on my thesis.
 </p>
 
 <h3>
@@ -184,8 +195,10 @@ layout: default
     Undergraduate Thesis Paper
 </h2>
 
-<object data="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf" type="application/pdf" width="1000px" height="1000px">
+<object data="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf" type="application/pdf"
+    width="1000px" height="1000px">
     <embed src="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf">
-        <p>This browser does not support PDFs. Please download the PDF to view it: <a href="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf">Download PDF</a>.</p>
+    <p>This browser does not support PDFs. Please download the PDF to view it: <a
+            href="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf">Download PDF</a>.</p>
     </embed>
 </object>
