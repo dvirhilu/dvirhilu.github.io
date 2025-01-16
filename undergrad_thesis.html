@@ -34,8 +34,9 @@
     </div>
     <i id="btnOpenNav" class="fa-solid fa-bars open-nav flex-container hide" style="color: white"></i>
 
-
-    <h1>
+    <main id="wrapper">
+    <section>
+    <h1 class="project-title">
         Undergraduate Thesis - An Architecture to Allow Direct File-System Access on GPU
     </h1>
 
@@ -43,7 +44,7 @@
         Starting in late January 2022, I joined Dr. Alexandra (Sasha) Fedorova's research group to complete an undergraduate
         thesis. This page contains a brief summary of the work, and the paper is embedded at the bottom.
     </p>
-
+    <br />
     <h2>
         Background Information
     </h2>
@@ -57,17 +58,15 @@
     <p>
         Before explaining the architecture, here are a few definitions relating to the GPU execution model that will be relevant for later sections: 
     </p>
+    </section>
+    <section>
     <h3>
         GPU Hardware Architecture Relevant Definitions
     </h3>
+    <div class="two-cols">
 
-    <img src="images/GPU_arch.png" alt="GPU hardware architecture" style="width:800px">
-    <figcaption>
-        GPU hardware architecture.
-    </figcaption>
-    </img>
-
-    <table>
+    <div class="table-container">
+    <table class="side-table">
         <tr>
             <th>Term</th>
             <th>Description</th>
@@ -97,20 +96,27 @@
             <td>Global memory is stored in the GPU RAM and can be accessed by ALL threads. As such, it is not thread safe.</td>
         </tr>
     </table>
-
+    </div>
+    <figure class="img">
+        <img class="expand" src="images/GPU_arch.png" alt="GPU hardware architecture">
+        <figcaption>
+            GPU hardware architecture (click to expand).
+        </figcaption>
+    </figure>
+    </div>
+    </section>
+    <section>
     <h2>
         Summary of the Proposed Architecture for VirtioFS
     </h2>
-    <img src="images/virtiofs_arch.png" alt="VirtioFS Architecture from the GPU's perspective." style="width:800px">
+    <div class="two-cols">
+    <figure>
+    <img class="expand" src="images/virtiofs_arch.png" alt="VirtioFS Architecture from the GPU's perspective." width="600px">
     <figcaption>
-        VirtioFS Architecture from the GPU's perspective.
+        VirtioFS Architecture from the GPU's perspective (click to expand).
     </figcaption>
-    </img>
-
-    <p>
-
-    </p>
-
+    </figure>
+    <div class="description-container">
     <h3>
         Interface Layer
     </h3>
@@ -119,8 +125,8 @@
         The interface layer of VirtioFS, which is exposed to the user, provides the usual POSIX-like semantics for file
         system operations. The functions implemented for the proof-of-concept VirtioFS are shown in the table below:
     </p>
-
-    <table>
+    <div  class="table-container">
+    <table class="side-table" style="margin: 16px 0;">
         <tr>
             <th>API Function</th>
             <th>Description</th>
@@ -158,11 +164,14 @@
             <td>Duplicate the file descriptor, allowing to track separate seek pointers in the file</td>
         </tr>
     </table>
-
+    </div>
     <p>
         The major difference between the CPU file API and the VirtioFS interface is that VirtioFS does not allow threads to make file-system calls independently of each other. Doing this would result in thread-divergence, causing a huge bottle neck by serializing each file operation in the warp. Instead, VirtioFS requires that all threads within a warp call the same VirtioFS function with the exact same parameters, and utilizes the GPU's parallelism under the hood.
     </p>
-
+</div>
+    </div>
+    </section>
+    <section>
     <h3>
         Unified Memory Allocation
     </h3>
@@ -184,14 +193,13 @@
         will be pointed to by the virtqueue entry. An example of the SSD would tranverse the unified memory on a read
         command is shown in the diagram below.
     </p>
-
-    <img src="images/virtio_comm_flow.png" alt="How SSD might tranverse unified memory for read command"
-        style="width:800px">
+    <figure>
+    <img src="images/virtio_comm_flow.png" alt="How SSD might tranverse unified memory for read command">
     <figcaption>
         Simplified view of how SSD might tranverse unified memory for read command. Starting at with the IO command, the
         device traverses the linked virtqueue entries and retrieves data from the command buffer.
     </figcaption>
-    </img>
+    </figure>
 
     <p>
         An important design decision I took here was to dedicate an individual virtqueue and buffer to each block in the
@@ -209,7 +217,8 @@
         to optimize between the partition size of unified memory and the number of blocks sharing a partition. That's an
         interesting question but I definitely did not have enough time to tackle this in the 5 months I worked on my thesis.
     </p>
-
+    </section>
+    <section>
     <h3>
         FUSE Layer
     </h3>
@@ -226,12 +235,13 @@
         Undergraduate Thesis Paper
     </h2>
 
-    <object data="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf" type="application/pdf"
-        width="1000px" height="1000px">
-        <embed src="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf">
+    <object data="https://dvirhilu.github.io/embedations/undergrad_thesis.pdf" type="application/pdf" width="100%" height="1000">
+        <embed src="https://dvirhilu.github.io/embedations/undergrad_thesis.pdf">
         <p>This browser does not support PDFs. Please download the PDF to view it: <a
-                href="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf">Download PDF</a>.</p>
-        </embed>
+                href="https://dvirhilu.github.io/embedations/undergrad_thesis.pdf">Download PDF</a>.</p>
     </object>
+    </section>
+</main>
+<script src="js/max-img.js"></script>
 
 </body>

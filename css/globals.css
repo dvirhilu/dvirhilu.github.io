@@ -18,6 +18,15 @@ html {
   scroll-behavior: smooth;
 }
 
+section {
+  margin: 64px 0;
+}
+
+object,
+img {
+  max-width: 100%;
+}
+
 h1,
 h2,
 h3,
@@ -58,7 +67,10 @@ h6 {
 }
 
 label,
-p {
+p,
+td,
+th,
+figcaption {
   color: var(--white);
   font-family: "Calibri", sans-serif;
   font-size: 1.25rem;

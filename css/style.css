@@ -1,39 +1,97 @@
 body {
-    background-color: var(--black);
-    font-family:Arial, Helvetica, sans-serif;
+  background-color: var(--black);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-.sidebar{
-    background-color: #000;
-    height: 100%;
-    left: 0;
-    position: absolute;
-    top: 0;
-    transition: 0.3s;
-    overflow: hidden;
+#wrapper {
+  margin: 0 5%;
 }
 
-.btn-panel{
-    background-color: #333333;
-    border-right: solid 2px #FFF;
-    border-bottom: solid 2px #FFF;
-    color: #FFF;
-    cursor: pointer;
-    font-size: 25px;
-    height: 50px;
-    left: 0;
-    position: absolute;
-    top: 0;
-    width: 250px;
-    z-index: 1;
+.sidebar {
+  background-color: #000;
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  transition: 0.3s;
+  overflow: hidden;
+}
+
+.btn-panel {
+  background-color: #333333;
+  border-right: solid 2px #fff;
+  border-bottom: solid 2px #fff;
+  color: #fff;
+  cursor: pointer;
+  font-size: 25px;
+  height: 50px;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 250px;
+  z-index: 1;
 }
 
 .admin-panel a {
-    color: #FFF;
-    display: inline-block;
-    font-size: 22px;
-    margin: 15px 0;
-    text-decoration: none;
-    text-align: center;
-    width: 250px;
+  color: #fff;
+  display: inline-block;
+  font-size: 22px;
+  margin: 15px 0;
+  text-decoration: none;
+  text-align: center;
+  width: 250px;
+}
+
+.project-title {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+/*2 column flexbox */
+.two-cols {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 64px;
+}
+
+.two-cols .table-container {
+  border: 1px solid var(--gray);
+  height: 400px;
+  overflow-y: scroll;
+  width: 100%;
+}
+
+.two-cols .side-table {
+  border-collapse: collapse;
+}
+
+.two-cols .side-table tr {
+  border-bottom: 1px solid var(--white);
+}
+
+.two-cols .side-table th,
+.two-cols .side-table td {
+  padding: 16px 16px 16px 0;
+}
+
+.two-cols .img {
+  width: 75%;
+}
+
+.two-cols .description-container {
+  max-width: 50%;
+}
+
+@media only screen and (max-width: 1090px) {
+  .two-cols {
+    flex-direction: column;
+    gap: 0px;
+  }
+
+  .two-cols .description-container {
+    margin-top: 16px;
+    max-width: 100%;
+  }
 }
