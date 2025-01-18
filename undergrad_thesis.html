@@ -188,8 +188,8 @@
     <img src="images/virtio_comm_flow.png" alt="How SSD might tranverse unified memory for read command"
         style="width:800px">
     <figcaption>
-        Simplified view of how SSD might tranverse unified memory for read command. Starting at with the IO command, the
-        device traverses the linked virtqueue entries and retrieves data from the command buffer.
+        Simplified view of how the storage device might tranverse unified memory for read command. Starting at with the 
+        IO command, the device traverses the linked virtqueue entries and retrieves data from the command buffer.
     </figcaption>
     </img>
 
@@ -215,16 +215,37 @@
     </h3>
 
     <p>
-
+        The FUSE Layer has two main functions - file table management, and construction of the FUSE protocol requests.
+        Similarly to the virtqueue and buffers, each block has its own dedicated file table to prevent the need to
+        synchronize file table accesses. Since the file table only takes up a small amount of memory, VirtioFS allocates
+        the file table in shared memory for faster access. Under the hood of the interface layer, the FUSE layer utilizes
+        the parallelism of the GPU by coalescing operations on the unified memory buffer.
     </p>
 
     <h3>
         Driver Layer
     </h3>
 
-    <h2>
+    <p>
+        The driver layer handles low-level device communication over the unified memory space (which could in the future 
+        also involve bus communication between devices). At initialization, the driver layer communicates with the storage
+        device to negotiate parameters, initialize the virtqueues, and communicate their address in unified memory. After
+        initialization, the driver layer populates the virtqueue with the appropriate data and notifies the storage device 
+        that a command has been issued through the IO command queue. 
+    </p>
+
+    <h3>
         Example Flow for g_read Command
-    </h2>
+    </h3>
+
+    <p>
+        The diagram below provides an example of how the g_read command would be processed in the FUSE layer. Serialized 
+        operations are abstracted and emphasis is placed on visualizing the coalesced memory operations.
+    </p>
+
+    <img src="images\Virtio-Drive-g_read.png" alt="g_read flow diagram in the FUSE layer"
+        style="width:800px">
+    </img>
 
     <h2>
         Undergraduate Thesis Paper
