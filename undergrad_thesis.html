@@ -197,14 +197,14 @@
         An important design decision I took here was to dedicate an individual virtqueue and buffer to each block in the
         program. If blocks were to access a shared virtqueue, accesses to the virtqueue would have to be synchronized.
         Allowing each block to have its own virtqueue and buffer space fully exploits the parallelism of the GPU and allows
-        file system action to occur asynchronously from the perspective of the GPU.
+        file system actions to occur asynchronously.
     </p>
 
     <p>
-        At initialization, each block is allocated the maximum transfer size negotiated by the SSD device. If the total
+        At initialization, each block is allocated the maximum transfer size negotiated by the storage device. If the total
         allocated memory would exceed available memory, total memory is divided evenly amongst blocks. The obvious tradeoff
         here is that as the number of blocks increases, the largest amount of data in a single transfer is decreased. Note
-        that while this approach is sufficient for the research teams applications of interest, CUDA in theory allows for a
+        that while this approach is sufficient for the research team's applications of interest, CUDA in theory allows for a
         ridicuolously large number of blocks for each program. In the future, further research is required into how exactly
         to optimize between the partition size of unified memory and the number of blocks sharing a partition. That's an
         interesting question but I definitely did not have enough time to tackle this in the 5 months I worked on my thesis.
@@ -213,6 +213,10 @@
     <h3>
         FUSE Layer
     </h3>
+
+    <p>
+
+    </p>
 
     <h3>
         Driver Layer
@@ -226,11 +230,11 @@
         Undergraduate Thesis Paper
     </h2>
 
-    <object data="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf" type="application/pdf"
+    <object data="embedations/undergrad_thesis.pdf" type="application/pdf"
         width="1000px" height="1000px">
-        <embed src="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf">
+        <embed src="embedations/undergrad_thesis.pdf">
         <p>This browser does not support PDFs. Please download the PDF to view it: <a
-                href="https://dvirhilu.github.io/projects/embedations/undergrad_thesis.pdf">Download PDF</a>.</p>
+                href="https://dvirhilu.github.io/embedations/undergrad_thesis.pdf">Download PDF</a>.</p>
         </embed>
     </object>
 
