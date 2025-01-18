@@ -40,8 +40,8 @@
     </h1>
 
     <p>
-        Starting in late January 2022, I joined Dr. Alexandra (Sasha) Fedorova's research group to complete an undergraduate
-        thesis. This page contains a brief summary of the work, and the paper is embedded at the bottom.
+        Starting in late January 2022, I joined Dr. Alexandra (Sasha) Fedorova's research group to complete an 
+        undergraduate thesis. This page contains a brief summary of the work, and the paper is embedded at the bottom.
     </p>
 
     <h2>
@@ -49,13 +49,23 @@
     </h2>
 
     <p>
-        The group identified a bottle neck in many modern workloads which require massive parallelization and data handling: Many of these workloads operate largely on specialized hardware accelerators (such as GPUs), and use a centralized CPU only to coordinate between subsystems and facilitate data transfers. Noting that many peripherals today have their own processors (SSDs, smart NICs, memory), the group envisioned a decentralized, CPU-less system, in which independent devices communicate together to execute workloads.
+        The group identified a bottle neck in many modern workloads which require massive parallelization and data 
+        handling: Many of these workloads operate on hardware accelerators (such as GPUs), and use a centralized CPU 
+        only to coordinate and facilitate data transfers. Noting that many peripherals today have their own processors 
+        (SSDs, smart NICs, memory), the group envisioned a decentralized, CPU-less system, in which independent devices 
+        communicate together to execute workloads.
     </p>
     <p>
-        As a first step to this vision, the team wanted to explore the possibility of direct communication over unified memory between a GPU and a file system implemented in the SSD. As a proof of concept, a hardware emulator was used to simulate the external file system, and I started the implementation of direct file access on the GPU side (named VirtioFS). I only had a few months for the thesis, so I prioritized coming up with an architecture that can accomplish the task on the GPU, and writing simple proof of concept code for how this architecture that would interact with the hardware emulator.
+        As a first step to this vision, the team wanted to explore the possibility of direct communication over unified 
+        memory between a GPU and a file system implemented in the SSD. As a proof of concept, a hardware emulator was 
+        used to simulate the external file system, and I started the implementation of direct file access on the GPU 
+        side (named VirtioFS). I only had 4 months for the thesis, so I prioritized coming up with an architecture that 
+        can accomplish the task on the GPU, and writing simple proof of concept code for how this architecture that 
+        would interact with the hardware emulator.
     </p>
     <p>
-        Before explaining the architecture, here are a few definitions relating to the GPU execution model that will be relevant for later sections: 
+        Before explaining the architecture, here are a few definitions relating to the GPU execution model that will be 
+        relevant for later sections: 
     </p>
     <h3>
         GPU Hardware Architecture Relevant Definitions
@@ -74,27 +84,48 @@
         </tr>
         <tr>
             <td>Streaming Multiprocessors (SMs)</td>
-            <td>NVIDIA's GPUs are comprised of a large number of these (typically 32-core) processors. All cores within an SM run the same instruction, though the data they operate on could be different. Each SM has its own L1 cache.</td>
+            <td>
+                NVIDIA's GPUs are comprised of a large number of these (typically 32-core) processors. All cores within 
+                an SM run the same instruction, though the data they operate on could be different. Each SM has its own 
+                L1 cache.
+            </td>
         </tr>
         <tr>
             <td>Block</td>
-            <td>Under the CUDA programming model, threads are grouped into blocks. Each block's threads run on a single SM for the entire lifetime of the program. Note that the number of threads in a block can be MUCH larger than the number of cores in an SM.</td>
+            <td>
+                Under the CUDA programming model, threads are grouped into blocks. Each block's threads run on a single 
+                SM for the entire lifetime of the program. Note that the number of threads in a block can be MUCH 
+                larger than the number of cores in an SM.
+            </td>
         </tr>
         <tr>
             <td>Warp</td>
-            <td>A block is further divided into warps, which match in size the number of cores in an SM. Threads in a warp always execute concurrently.</td>
+            <td>
+                A block is further divided into warps, which match in size the number of cores in an SM. Threads in a 
+                warp always execute concurrently.
+            </td>
         </tr>
         <tr>
             <td>Thread Divergence</td>
-            <td>Due to the same-instruction model of an SM, if threads in the same warp don't execute the same instruction (i.e. conditional branching), their instruction execution is serialized (one branch executed after the other, NOT concurrently).</td>
+            <td>
+                Due to the same-instruction model of an SM, if threads in the same warp don't execute the same 
+                instruction (i.e. conditional branching), their instruction execution is serialized (one branch 
+                executed after the other, NOT concurrently).
+            </td>
         </tr>
         <tr>
             <td>Shared Memory</td>
-            <td>Half of the L1 cache of an SM is allocated as "Shared Memory". Shared memory access is limited to threads in the same block, and provides a small, high-speed memory to use throughout the program.</td>
+            <td>
+                Half of the L1 cache of an SM is allocated as "Shared Memory". Shared memory access is limited to 
+                threads in the same block, and provides a small, high-speed memory to use throughout the program.
+            </td>
         </tr>
         <tr>
             <td>Global Memory</td>
-            <td>Global memory is stored in the GPU RAM and can be accessed by ALL threads. As such, it is not thread safe.</td>
+            <td>
+                Global memory is stored in the GPU RAM and can be accessed by ALL threads. As such, it is not thread
+                safe.
+            </td>
         </tr>
     </table>
 
@@ -106,10 +137,6 @@
         VirtioFS Architecture from the GPU's perspective.
     </figcaption>
     </img>
-
-    <p>
-
-    </p>
 
     <h3>
         Interface Layer
@@ -160,7 +187,11 @@
     </table>
 
     <p>
-        The major difference between the CPU file API and the VirtioFS interface is that VirtioFS does not allow threads to make file-system calls independently of each other. Doing this would result in thread-divergence, causing a huge bottle neck by serializing each file operation in the warp. Instead, VirtioFS requires that all threads within a warp call the same VirtioFS function with the exact same parameters, and utilizes the GPU's parallelism under the hood.
+        The major difference between the CPU file API and the VirtioFS interface is that VirtioFS does not allow 
+        threads to make file-system calls independently of each other. Doing this would result in thread-divergence, 
+        causing a huge bottle neck by serializing each file operation in the warp. Instead, VirtioFS requires that all 
+        threads within a warp call the same VirtioFS function with the exact same parameters, and utilizes the GPU's 
+        parallelism under the hood.
     </p>
 
     <h3>
