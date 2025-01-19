@@ -3,6 +3,7 @@
 <html lang="en">
 
 <!--Defines metadata-->
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,256 +34,329 @@
         </ul>
     </div>
     <i id="btnOpenNav" class="fa-solid fa-bars open-nav flex-container hide" style="color: white"></i>
+    <div id="wrapper">
+        <h1 class="title">
+            VirtioFS - An Architecture to Allow Direct File-System Access on GPU
+        </h1>
+        <section>
+            <h2 class="subtitle">
+                Motivation
+            </h2>
 
-    <h1>
-        VirtioFS - An Architecture to Allow Direct File-System Access on GPU
-    </h1>
+            <p>
+                After taking a course with Dr. Alexandra (Sasha) Fedorova and gaining interest in her research work, I
+                reached
+                out to her to work within her research group and complete an undergraduate thesis. This page provides a
+                summary
+                of my work, and the full paper is embedded at the bottom.
+            </p>
 
-    <h2>
-        Motivation
-    </h2>
+            <p>
+                Dr. Fedorova's group was working to create a decentralized, CPU-less system, in which independent
+                devices
+                communicate together to execute workloads. Such a system would be ideal for many modern workloads, which
+                require massive parallelization and data handling. Today, these workloads mainly operate on hardware
+                accelerators (such as GPUs), and use the CPU only for coordination and facilitating data transfer.
+            </p>
 
-    <p>
-        After taking a course with Dr. Alexandra (Sasha) Fedorova and gaining interest in her research work, I reached
-        out to her to work within her research group and complete an undergraduate thesis. This page provides a summary
-        of my work, and the full paper is embedded at the bottom.
-    </p>
+            <p>
+                My role within the research group was to devise a way to allow GPUs to directly access files from a
+                storage
+                device over unified memory. I only had 5 months for the thesis, so I prioritized coming up with a
+                software
+                architecture for the library. As a simple proof of concept, I implemented this architecture in CUDA to
+                communicate with a hardware emulator of a storage device previously set up by the group.
+            </p>
 
-    <p>
-        Dr. Fedorova's group was working to create a decentralized, CPU-less system, in which independent devices 
-        communicate together to execute workloads. Such a system would be ideal for many modern workloads, which
-        require massive parallelization and data handling. Today, these workloads mainly operate on hardware
-        accelerators (such as GPUs), and use the CPU only for coordination and facilitating data transfer.
-    </p>
+            <p>
+                Before explaining the architecture, here are a few definitions relating to the GPU execution model that
+                will be
+                relevant for later sections:
+            </p>
+        </section>
+        <section>
+            <h3 class="subtitle">
+                GPU Hardware Architecture Relevant Definitions
+            </h3>
+            <figure class="img-container">
+                <img class="img" src="images/GPU_arch.png" alt="GPU hardware architecture">
+                <figcaption>
+                    Click to expand
+                </figcaption>
+            </figure>
 
-    <p>
-        My role within the research group was to devise a way to allow GPUs to directly access files from a storage
-        device over unified memory. I only had 5 months for the thesis, so I prioritized coming up with a software 
-        architecture for the library. As a simple proof of concept, I implemented this architecture in CUDA to 
-        communicate with a hardware emulator of a storage device previously set up by the group.
-    </p>
+            <table class="table">
+                <tr>
+                    <th>Term</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Streaming Multiprocessors (SMs)</td>
+                    <td>
+                        NVIDIA's GPUs are comprised of a large number of these (typically 32-core) processors. All cores
+                        within
+                        an SM run the same instruction, though the data they operate on could be different. Each SM has
+                        its
+                        own
+                        L1 cache.
+                    </td>
+                </tr>
+                <tr>
+                    <td>Block</td>
+                    <td>
+                        Under the CUDA programming model, threads are grouped into blocks. Each block's threads run on a
+                        single
+                        SM for the entire lifetime of the program. Note that the number of threads in a block can be
+                        MUCH
+                        larger than the number of cores in an SM.
+                    </td>
+                </tr>
+                <tr>
+                    <td>Warp</td>
+                    <td>
+                        A block is further divided into warps, which match in size the number of cores in an SM. Threads
+                        in
+                        a
+                        warp always execute concurrently.
+                    </td>
+                </tr>
+                <tr>
+                    <td>Thread Divergence</td>
+                    <td>
+                        Due to the same-instruction model of an SM, if threads in the same warp don't execute the same
+                        instruction (i.e. conditional branching), their instruction execution is serialized (one branch
+                        executed after the other, NOT concurrently).
+                    </td>
+                </tr>
+                <tr>
+                    <td>Shared Memory</td>
+                    <td>
+                        Half of the L1 cache of an SM is allocated as "Shared Memory". Shared memory access is limited
+                        to
+                        threads in the same block, and provides a small, high-speed memory to use throughout the
+                        program.
+                    </td>
+                </tr>
+                <tr>
+                    <td>Global Memory</td>
+                    <td>
+                        Global memory is stored in the GPU RAM and can be accessed by ALL threads. As such, it is not
+                        thread
+                        safe.
+                    </td>
+                </tr>
+            </table>
+        </section>
+        <section>
+            <h2 class="subtitle">
+                Summary of the Proposed Architecture for VirtioFS
+            </h2>
+            <figure class="img-container">
+                <img class="img" src="images/virtiofs_arch.png" alt="VirtioFS Architecture from the GPU's perspective.">
+                <figcaption>
+                    VirtioFS Architecture from the GPU's perspective. Click to expand.
+                </figcaption>
+            </figure>
+            <h3 class="subtitle">
+                Interface Layer
+            </h3>
 
-    <p>
-        Before explaining the architecture, here are a few definitions relating to the GPU execution model that will be 
-        relevant for later sections: 
-    </p>
-    <h3>
-        GPU Hardware Architecture Relevant Definitions
-    </h3>
+            <p>
+                The interface layer of VirtioFS, which is exposed to the user, provides the usual POSIX-like semantics
+                for
+                file
+                system operations. The functions implemented for the proof-of-concept VirtioFS are shown in the table
+                below:
+            </p>
+            <table class="table">
+                <tr>
+                    <th>API Function</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>g_readdir</td>
+                    <td>open current directory and read its contents</td>
+                </tr>
+                <tr>
+                    <td>g_open</td>
+                    <td>open file and add its file descriptor to the current block's file table</td>
+                </tr>
+                <tr>
+                    <td>g_close</td>
+                    <td>close file and remove its file descriptor from the current block's file table</td>
+                </tr>
+                <tr>
+                    <td>g_fstat</td>
+                    <td>query the size of the file</td>
+                </tr>
+                <tr>
+                    <td>g_read</td>
+                    <td>read file and increment seek pointer by amount read</td>
+                </tr>
+                <tr>
+                    <td>g_write</td>
+                    <td>write to file and increment seek pointer by amount written</td>
+                </tr>
+                <tr>
+                    <td>g_lseek</td>
+                    <td>Change the position of the file's seek pointer</td>
+                </tr>
+                <tr>
+                    <td>g_dup2</td>
+                    <td>Duplicate the file descriptor, allowing to track separate seek pointers in the file</td>
+                </tr>
+            </table>
+            <br />
+            <p>
+                The major difference between the CPU file API and the VirtioFS interface is that VirtioFS does not allow
+                threads to make file-system calls independently of each other. Doing this would result in
+                thread-divergence,
+                causing a huge bottle neck by serializing each file operation in the warp. Instead, VirtioFS requires
+                that
+                all
+                threads within a warp call the same VirtioFS function with the exact same parameters, and utilizes the
+                GPU's
+                parallelism under the hood.
+            </p>
+        </section>
+        <section>
+            <h3 class="subtitle">
+                Unified Memory Allocation
+            </h3>
 
-    <img src="images/GPU_arch.png" alt="GPU hardware architecture" style="width:800px">
-    <figcaption>
-        GPU hardware architecture.
-    </figcaption>
-    </img>
+            <p>
+                The data transfer and communication between the GPU and storage device (or emulator) is done via unified
+                memory,
+                accessible from both devices. In work done before I joined, it was decided to follow <a
+                    href="https://docs.oasis-open.org/virtio/virtio/v1.1/csprd01/virtio-v1.1-csprd01.html#x1-30001">Virtio</a>,
+                a
+                standard for I/O communication used mostly in virtual machines. The communication protocol operates over
+                unified
+                memory, with a section dedicated to an I/O command queue (where Virtio commands are placed and the
+                handshake
+                happens. This will likely be replaced in the future with bus commands), and a unified memory buffer used
+                for
+                bulk
+                data transfers.
+            </p>
 
-    <table>
-        <tr>
-            <th>Term</th>
-            <th>Description</th>
-        </tr>
-        <tr>
-            <td>Streaming Multiprocessors (SMs)</td>
-            <td>
-                NVIDIA's GPUs are comprised of a large number of these (typically 32-core) processors. All cores within 
-                an SM run the same instruction, though the data they operate on could be different. Each SM has its own 
-                L1 cache.
-            </td>
-        </tr>
-        <tr>
-            <td>Block</td>
-            <td>
-                Under the CUDA programming model, threads are grouped into blocks. Each block's threads run on a single 
-                SM for the entire lifetime of the program. Note that the number of threads in a block can be MUCH 
-                larger than the number of cores in an SM.
-            </td>
-        </tr>
-        <tr>
-            <td>Warp</td>
-            <td>
-                A block is further divided into warps, which match in size the number of cores in an SM. Threads in a 
-                warp always execute concurrently.
-            </td>
-        </tr>
-        <tr>
-            <td>Thread Divergence</td>
-            <td>
-                Due to the same-instruction model of an SM, if threads in the same warp don't execute the same 
-                instruction (i.e. conditional branching), their instruction execution is serialized (one branch 
-                executed after the other, NOT concurrently).
-            </td>
-        </tr>
-        <tr>
-            <td>Shared Memory</td>
-            <td>
-                Half of the L1 cache of an SM is allocated as "Shared Memory". Shared memory access is limited to 
-                threads in the same block, and provides a small, high-speed memory to use throughout the program.
-            </td>
-        </tr>
-        <tr>
-            <td>Global Memory</td>
-            <td>
-                Global memory is stored in the GPU RAM and can be accessed by ALL threads. As such, it is not thread
-                safe.
-            </td>
-        </tr>
-    </table>
+            <p>
+                The unified memory buffer is further split into virtio queues (virtqueues) and command buffers.
+                Virtqueues
+                are a
+                queue structure where device specific commands are placed. In this case, the virtqueues hold the file
+                system
+                specific commands. Any data that is transfered between the devices will be contained in the command
+                buffers,
+                and
+                will be pointed to by the virtqueue entry. An example of how the storage device would tranverse the
+                unified
+                memory
+                on a read command is shown in the diagram below.
+            </p>
+            <figure class="img-container">
+                <img class="img" src="images/virtio_comm_flow.png"
+                    alt="How SSD might tranverse unified memory for read command">
+                <figcaption>
+                    Click to expand.
+                </figcaption>
+            </figure>
 
-    <h2>
-        Summary of the Proposed Architecture for VirtioFS
-    </h2>
-    <img src="images/virtiofs_arch.png" alt="VirtioFS Architecture from the GPU's perspective." style="width:800px">
-    <figcaption>
-        VirtioFS Architecture from the GPU's perspective.
-    </figcaption>
-    </img>
+            <p>
+                An important design decision I took here was to dedicate an individual virtqueue and buffer to each
+                block in
+                the
+                program. If blocks were to access a shared virtqueue, accesses to the virtqueue would have to be
+                synchronized.
+                Allowing each block to have its own virtqueue and buffer space fully exploits the parallelism of the GPU
+                and
+                allows
+                file system actions to occur asynchronously.
+            </p>
 
-    <h3>
-        Interface Layer
-    </h3>
+            <p>
+                At initialization, each block is allocated the maximum transfer size negotiated by the storage device.
+                If
+                the total
+                allocated memory would exceed available memory, total memory is divided evenly amongst blocks. The
+                obvious
+                tradeoff
+                here is that as the number of blocks increases, the largest amount of data in a single transfer is
+                decreased. Note
+                that while this approach is sufficient for the research team's applications of interest, CUDA in theory
+                allows for a
+                ridicuolously large number of blocks for each program. In the future, further research is required into
+                how
+                exactly
+                to optimize between the partition size of unified memory and the number of blocks sharing a partition.
+                That's an
+                interesting question but I definitely did not have enough time to tackle this in the 5 months I worked
+                on my
+                thesis.
+            </p>
+            <h3>
+                FUSE Layer
+            </h3>
 
-    <p>
-        The interface layer of VirtioFS, which is exposed to the user, provides the usual POSIX-like semantics for file
-        system operations. The functions implemented for the proof-of-concept VirtioFS are shown in the table below:
-    </p>
+            <p>
+                The FUSE Layer has two main functions - file table management, and construction of the FUSE protocol
+                requests.
+                Similarly to the virtqueue and buffers, each block has its own dedicated file table to prevent the need
+                to
+                synchronize file table accesses. Since the file table only takes up a small amount of memory, VirtioFS
+                allocates
+                the file table in shared memory for faster access. Under the hood of the interface layer, the FUSE layer
+                utilizes
+                the parallelism of the GPU by coalescing memory operations on the unified buffer.
+            </p>
 
-    <table>
-        <tr>
-            <th>API Function</th>
-            <th>Description</th>
-        </tr>
-        <tr>
-            <td>g_readdir</td>
-            <td>open current directory and read its contents</td>
-        </tr>
-        <tr>
-            <td>g_open</td>
-            <td>open file and add its file descriptor to the current block's file table</td>
-        </tr>
-        <tr>
-            <td>g_close</td>
-            <td>close file and remove its file descriptor from the current block's file table</td>
-        </tr>
-        <tr>
-            <td>g_fstat</td>
-            <td>query the size of the file</td>
-        </tr>
-        <tr>
-            <td>g_read</td>
-            <td>read file and increment seek pointer by amount read</td>
-        </tr>
-        <tr>
-            <td>g_write</td>
-            <td>write to file and increment seek pointer by amount written</td>
-        </tr>
-        <tr>
-            <td>g_lseek</td>
-            <td>Change the position of the file's seek pointer</td>
-        </tr>
-        <tr>
-            <td>g_dup2</td>
-            <td>Duplicate the file descriptor, allowing to track separate seek pointers in the file</td>
-        </tr>
-    </table>
+            <h3>
+                Driver Layer
+            </h3>
 
-    <p>
-        The major difference between the CPU file API and the VirtioFS interface is that VirtioFS does not allow 
-        threads to make file-system calls independently of each other. Doing this would result in thread-divergence, 
-        causing a huge bottle neck by serializing each file operation in the warp. Instead, VirtioFS requires that all 
-        threads within a warp call the same VirtioFS function with the exact same parameters, and utilizes the GPU's 
-        parallelism under the hood.
-    </p>
+            <p>
+                The driver layer handles low-level device communication over the unified memory space (which could in
+                the
+                future
+                also involve bus communication between devices). At initialization, the driver layer communicates with
+                the
+                storage
+                device to negotiate parameters, initialize the virtqueues, and communicate their address in unified
+                memory.
+                After
+                initialization, the driver layer populates the virtqueue with the appropriate data and notifies the
+                storage
+                device
+                that a command has been issued through the IO command queue.
+            </p>
 
-    <h3>
-        Unified Memory Allocation
-    </h3>
+            <h3>
+                Example Flow for g_read Command
+            </h3>
 
-    <p>
-        The data transfer and communication between the GPU and storage device (or emulator) is done via unified memory, 
-        accessible from both devices. In work done before I joined, it was decided to follow <a
-            href="https://docs.oasis-open.org/virtio/virtio/v1.1/csprd01/virtio-v1.1-csprd01.html#x1-30001">Virtio</a>, a
-        standard for I/O communication used mostly in virtual machines. The communication protocol operates over unified
-        memory, with a section dedicated to an I/O command queue (where Virtio commands are placed and the handshake
-        happens. This will likely be replaced in the future with bus commands), and a unified memory buffer used for bulk
-        data transfers.
-    </p>
+            <p>
+                The diagram below provides an example of how the g_read command would be processed in the FUSE layer.
+                Serialized
+                operations are abstracted and emphasis is placed on visualizing the coalesced memory operations.
+            </p>
 
-    <p>
-        The unified memory buffer is further split into virtio queues (virtqueues) and command buffers. Virtqueues are a
-        queue structure where device specific commands are placed. In this case, the virtqueues hold the file system
-        specific commands. Any data that is transfered between the devices will be contained in the command buffers, and
-        will be pointed to by the virtqueue entry. An example of how the storage device would tranverse the unified memory 
-        on a read command is shown in the diagram below.
-    </p>
+            <figure class="img-container">
+                <img class="img" src="images\Virtio-Drive-g_read.png" alt="g_read flow diagram in the FUSE layer">
+                <figcaption>
+                    Click to expand.
+                </figcaption>
+            </figure>
+        </section>
 
-    <img src="images/virtio_comm_flow.png" alt="How SSD might tranverse unified memory for read command"
-        style="width:800px">
-    </img>
+        <h2>
+            Undergraduate Thesis Paper
+        </h2>
 
-    <p>
-        An important design decision I took here was to dedicate an individual virtqueue and buffer to each block in the
-        program. If blocks were to access a shared virtqueue, accesses to the virtqueue would have to be synchronized.
-        Allowing each block to have its own virtqueue and buffer space fully exploits the parallelism of the GPU and allows
-        file system actions to occur asynchronously.
-    </p>
-
-    <p>
-        At initialization, each block is allocated the maximum transfer size negotiated by the storage device. If the total
-        allocated memory would exceed available memory, total memory is divided evenly amongst blocks. The obvious tradeoff
-        here is that as the number of blocks increases, the largest amount of data in a single transfer is decreased. Note
-        that while this approach is sufficient for the research team's applications of interest, CUDA in theory allows for a
-        ridicuolously large number of blocks for each program. In the future, further research is required into how exactly
-        to optimize between the partition size of unified memory and the number of blocks sharing a partition. That's an
-        interesting question but I definitely did not have enough time to tackle this in the 5 months I worked on my thesis.
-    </p>
-
-    <h3>
-        FUSE Layer
-    </h3>
-
-    <p>
-        The FUSE Layer has two main functions - file table management, and construction of the FUSE protocol requests.
-        Similarly to the virtqueue and buffers, each block has its own dedicated file table to prevent the need to
-        synchronize file table accesses. Since the file table only takes up a small amount of memory, VirtioFS allocates
-        the file table in shared memory for faster access. Under the hood of the interface layer, the FUSE layer utilizes
-        the parallelism of the GPU by coalescing memory operations on the unified buffer.
-    </p>
-
-    <h3>
-        Driver Layer
-    </h3>
-
-    <p>
-        The driver layer handles low-level device communication over the unified memory space (which could in the future 
-        also involve bus communication between devices). At initialization, the driver layer communicates with the storage
-        device to negotiate parameters, initialize the virtqueues, and communicate their address in unified memory. After
-        initialization, the driver layer populates the virtqueue with the appropriate data and notifies the storage device 
-        that a command has been issued through the IO command queue. 
-    </p>
-
-    <h3>
-        Example Flow for g_read Command
-    </h3>
-
-    <p>
-        The diagram below provides an example of how the g_read command would be processed in the FUSE layer. Serialized 
-        operations are abstracted and emphasis is placed on visualizing the coalesced memory operations.
-    </p>
-
-    <img src="images\Virtio-Drive-g_read.png" alt="g_read flow diagram in the FUSE layer"
-        style="width:800px">
-    </img>
-
-    <h2>
-        Undergraduate Thesis Paper
-    </h2>
-
-    <object data="embedations/undergrad_thesis.pdf" type="application/pdf"
-        width="1000px" height="1000px">
-        <embed src="embedations/undergrad_thesis.pdf">
-        <p>This browser does not support PDFs. Please download the PDF to view it: <a
-                href="https://dvirhilu.github.io/embedations/undergrad_thesis.pdf">Download PDF</a>.</p>
-        </embed>
-    </object>
-
+        <object data="embedations/undergrad_thesis.pdf" type="application/pdf" width="100%" height="1000px">
+            <embed src="embedations/undergrad_thesis.pdf">
+            <p>This browser does not support PDFs. Please download the PDF to view it: <a
+                    href="https://dvirhilu.github.io/embedations/undergrad_thesis.pdf">Download PDF</a>.</p>
+            </embed>
+        </object>
+    </div>
 </body>

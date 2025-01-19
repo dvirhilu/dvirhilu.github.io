@@ -18,6 +18,15 @@ html {
   scroll-behavior: smooth;
 }
 
+section {
+  margin: 64px 0;
+}
+
+object,
+img {
+  max-width: 100%;
+}
+
 h1,
 h2,
 h3,
@@ -58,16 +67,24 @@ h6 {
 }
 
 label,
-p {
+p,
+td,
+th,
+figcaption {
   color: var(--white);
   font-family: "Calibri", sans-serif;
   font-size: 1.25rem;
 }
 
+p {
+  margin-bottom: 16px;
+}
+
 a {
   color: var(--white);
   font-family: "Calibri", sans-serif;
-  text-decoration: none;
+  font-style: italic;
+  text-decoration: underline;
 }
 
 a:hover {
@@ -123,6 +140,8 @@ button:hover {
   color: var(--white);
   cursor: pointer;
   font-size: 2rem;
+  font-style: normal;
+  text-decoration: none;
 }
 
 .hide {
@@ -141,6 +160,7 @@ button:hover {
   margin: 0 5px;
   margin-bottom: 5px;
   padding: 3px;
+  transform: rotate(45deg);
   -webkit-transform: rotate(45deg);
 }
 
@@ -312,6 +332,7 @@ button:hover {
   }
   .nav-container ul li a {
     font-size: 1.75rem;
+    text-decoration: none;
   }
 
   .nav-container ul li a:hover {
@@ -323,5 +344,13 @@ button:hover {
   .nav-container ul li a {
     border-bottom: none;
     font-size: 1.75rem;
+  }
+
+  label,
+  p,
+  td,
+  th,
+  figcaption {
+    font-size: 1rem;
   }
 }
