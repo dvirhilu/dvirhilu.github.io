@@ -3,6 +3,7 @@
 <html lang="en">
 
 <!--Defines metadata-->
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,122 +33,182 @@
         </ul>
     </div>
     <i id="btnOpenNav" class="fa-solid fa-bars open-nav flex-container hide" style="color: white"></i>
+    <!--Main-->
+    <main id="wrapper">
+        <section>
+            <h1 class="title">
+                Signal Processing Project - 3D Reconstruction of Objects from Multiple Images
+            </h1>
 
-<h1>
-    Signal Processing Project - 3D Reconstruction of Objects from Multiple Images
-</h1>
+            <p>
+                To learn more about and explore classical image processing techniques, I worked on a project to generate
+                a 3D point cloud of an object from multiple images. I decided to use this project as the final project
+                for
+                one of my
+                courses at UBC, and as a result wrote an IEEE style paper about it, which is embeded below. A summary of
+                the
+                work is
+                given in this page, but for a full description of the developed algorithms, please refer to the attached
+                paper.
+            </p>
 
-<p>
-    To learn more about and explore classical image processing techniques, I worked on a project to generate
-    a 3D point cloud of an object from multiple images. I decided to use this project as the final project for one of my
-    courses at UBC, and as a result wrote an IEEE style paper about it, which is embeded below. A summary of the work is
-    given in this page, but for a full description of the developed algorithms, please refer to the attached paper.
-</p>
+            <p>
+                <a href="https://github.com/dvirhilu/multi-image-3d-reconstruction">
+                    Link to the github repo
+                </a>
+            </p>
+        </section>
+        <section>
+            <h2 class="subtitle">
+                Camera Calibration
+            </h2>
+            <p>
+                Camera calibration refers to the process of finding the transformation between a 3D world point and the
+                2D
+                image
+                point. The intrinsic camera parameters (properties of the camera lens and image sensor) were found for
+                my
+                phone
+                camera using the MATLAB Calibration Toolbox. The extrinsic parameters (position and orientation) must be
+                calculated dynamically. For simplicity and due to time constraints, all object images were taken against
+                a
+                known
+                background (shown in the image below), which was used to calculate the position and orientation of the
+                camera.
+            </p>
 
-<p>
-    <a href="https://github.com/dvirhilu/multi-image-3d-reconstruction">
-        Link to the github repo
-    </a>
-</p>
+            <figure class="img-container">
+                <img class="img expand" src="images/image_background.jpg" alt="Known image background">
+                <figcaption>
+                    Click to expand.
+                </figcaption>
+            </figure>
 
-<h2>
-    Camera Calibration
-</h2>
-<p>
-    Camera calibration refers to the process of finding the transformation between a 3D world point and the 2D image 
-    point. The intrinsic camera parameters (properties of the camera lens and image sensor) were found for my phone 
-    camera using the MATLAB Calibration Toolbox. The extrinsic parameters (position and orientation) must be
-    calculated dynamically. For simplicity and due to time constraints, all object images were taken against a known 
-    background (shown in the image below), which was used to calculate the position and orientation of the camera.
-</p>
+            <p>
+                As a first pass, candidates for the background's chess corners are found using a Harris corner detector.
+                To
+                reduce
+                the large amount of false-corners detected, the candidates are passed through two filters: a
+                centro-symmetry
+                filter,
+                and a distance threshold criterion. The centro-symmetry filter draws a circle with 8 sub-sections around
+                the
+                candidate. The filter then compares the average intensity in the sub-sections to eliminate candidates.
+                This
+                is
+                visualized in the image below. The distance threshold criteria leverages the fact that corners exist as
+                a
+                4-corner
+                cluster, and eliminates any corner with a 3rd nearest neighbour that is too far
+            </p>
 
-<img src="images/image_background.jpg" alt="Known image background"
-style="width:800px">
-</img>
+            <figure class="img-container">
+                <img class="img expand" src="images/centrosymmetry_vis.png" alt="Centrosymmetry filter">
+                <figcaption>
+                    Visualization of the centrosymmetry filter. For corners, the difference in the average intensities
+                    across
+                    diagonals
+                    will be much smaller than across the vertical and horizontal directions. Click to expand.
+                </figcaption>
+            </figure>
 
-<p>
-    As a first pass, candidates for the background's chess corners are found using a Harris corner detector. To reduce
-    the large amount of false-corners detected, the candidates are passed through two filters: a centro-symmetry filter,
-    and a distance threshold criterion. The centro-symmetry filter draws a circle with 8 sub-sections around the 
-    candidate. The filter then compares the average intensity in the sub-sections to eliminate candidates. This is
-    visualized in the image below. The distance threshold criteria leverages the fact that corners exist as a 4-corner 
-    cluster, and eliminates any corner with a 3rd nearest neighbour that is too far
-</p>
+            <p>
+                Once corners are found, they were sorted in a tranformation-invariant order. This sorting ensures that
+                the
+                exact
+                same point in 3D space can be found across the different images. This sorting is demonstrated in the
+                image
+                below.
+                Once the position of the corners was determined, the camera position and orientation were calculated
+                using a
+                nonlinear least squares optimization. Finally, the camera parameters were used to re-project the corners
+                onto the
+                image, and any images with high reprojection error were discarded.
+            </p>
 
-<img src="images/centrosymmetry_vis.png" alt="Centrosymmetry filter"
-style="width:800px">
-<figcaption>
-    Visualization of the centrosymmetry filter. For corners, the difference in the average intensities across diagonals 
-    will be much smaller than across the vertical and horizontal directions.
-</figcaption>
-</img>
+            <figure class="img-container">
+                <img class="img expand" src="images/corner_sorting_vis.png" alt="Corner Sorting Visualized">
+                <figcaption>
+                    Click to expand.
+                </figcaption>
+            </figure>
+        </section>
+        <section>
+            <h2 class="subtitle">
+                Feature Matching and 3D Point Triangulation
+            </h2>
 
-<p>
-    Once corners are found, they were sorted in a tranformation-invariant order. This sorting ensures that the exact 
-    same point in 3D space can be found across the different images. This sorting is demonstrated in the image below.
-    Once the position of the corners was determined, the camera position and orientation were calculated using a
-    nonlinear least squares optimization. Finally, the camera parameters were used to re-project the corners onto the 
-    image, and any images with high reprojection error were discarded.
-</p>
+            <p>
+                To reconstruct a point in 3D, the point must be located across at least two images. Feature matching
+                (the
+                process
+                of finding a common point between images of different perspectives) was done using the Scale-Invariant
+                Feature
+                Transform (SIFT). Once a feature is matched across two or more images, the 3D coordinates of the point
+                were
+                found
+                by solving a homogeneous linear system made from the 2D image points and the projection matrix. Once
+                again,
+                these
+                3D points are re-projected to the images and discarded if the reprojection error is too high. Finally,
+                the
+                distribution of points across all 3 spatial coordinates is used to remove final outliers.
+            </p>
 
-<img src="images/corner_sorting_vis.png" alt="Corner Sorting Visualized"
-style="width:800px">
-</img>
+            <h2 class="subtitle">
+                Experiments and 3D Viewer
+            </h2>
 
-<h2>
-    Feature Matching and 3D Point Triangulation
-</h2>
+            <p>
+                To visualize the 3D point cloud, I made an interactive 3D visualizer. The images below show two objects
+                used
+                for experiments, alongside a screenshot of their reconstructed point clouds in the visualizer.
+            </p>
 
-<p>
-    To reconstruct a point in 3D, the point must be located across at least two images. Feature matching (the process 
-    of finding a common point between images of different perspectives) was done using the Scale-Invariant Feature
-    Transform (SIFT). Once a feature is matched across two or more images, the 3D coordinates of the point were found 
-    by solving a homogeneous linear system made from the 2D image points and the projection matrix. Once again, these 
-    3D points are re-projected to the images and discarded if the reprojection error is too high. Finally, the 
-    distribution of points across all 3 spatial coordinates is used to remove final outliers.
-</p>
+            <figure class="img-container">
+                <img class="img expand" src="images/eraser.jpg" alt="Eraser Object">
+                <figcaption>
+                    Click to expand.
+                </figcaption>
+            </figure>
 
-<h2>
-    Experiments and 3D Viewer
-</h2>
+            <figure class="img-container">
+                <img class="img expand" src="images/eraser_reconstruction.png" alt="Reconstructed eraser">
+                <figcaption>
+                    The reconstructed eraser image set. The top, which is full of distinct text features reconstructed
+                    well.
+                    However,
+                    sides were all relatively featureless and reconstructed poorly. Click to expand.
+                </figcaption>
+            </figure>
 
-<p>
-    To visualize the 3D point cloud, I made an interactive 3D visualizer. The images below show two objects used
-    for experiments, alongside a screenshot of their reconstructed point clouds in the visualizer.
-</p>
+            <figure class="img-container">
+                <img class="img expand" src="images/keychain.jpg" alt="Keychain object" style="width:400px">
+                <figcaption>
+                    Click to expand.
+                </figcaption>
+            </figure>
 
+            <figure class="img-container">
+                <img class="img expand" src="images/monkey_reconstruction.png" alt="Reconstructed keychain"
+                    style="width:600px">
+                <figcaption>
+                    The reconstructed point cloud for the keychain image set. Once again, the top reconstructed fairly
+                    well,
+                    while the
+                    sides have a much more sparse distribution. Click to expand.
+                </figcaption>
+            </figure>
+        </section>
 
-<img src="images/eraser.jpg" alt="Eraser Object"
-style="width:400px">
-</img>
-
-<img src="images/eraser_reconstruction.png" alt="Reconstructed eraser"
-style="width:600px">
-<figcaption>
-    The reconstructed eraser image set. The top, which is full of distinct text features reconstructed well. However,
-    sides were all relatively featureless and reconstructed poorly.
-</figcaption>
-</img>
-
-<img src="images/keychain.jpg" alt="Keychain object"
-style="width:400px">
-<figcaption>
-</figcaption>
-</img>
-
-<img src="images/monkey_reconstruction.png" alt="Reconstructed keychain"
-style="width:600px">
-<figcaption>
-    The reconstructed point cloud for the keychain image set. Once again, the top reconstructed fairly well, while the 
-    sides have a much more sparse distribution.
-</figcaption>
-</img>
-
-
-<object data="embedations/multi_image_reconstruction.pdf" type="application/pdf"
-    width="1000px" height="1000px">
-    <embed src="embedations/multi_image_reconstruction.pdf">
-    <p>This browser does not support PDFs. Please download the PDF to view it: <a
-            href="https://dvirhilu.github.io/embedations/multi_image_reconstruction.pdf">Download PDF</a>.</p>
-    </embed>
-</object>
+        <object data="embedations/multi_image_reconstruction.pdf" type="application/pdf" width="100%" height="1000px">
+            <embed src="embedations/multi_image_reconstruction.pdf">
+            <p>This browser does not support PDFs. Please download the PDF to view it: <a
+                    href="https://dvirhilu.github.io/embedations/multi_image_reconstruction.pdf">Download PDF</a>.</p>
+            </embed>
+        </object>
+    </main>
+    <!--Scripts-->
+    <script src="js/navbar.js"></script>
+    <script src="js/max-img.js"></script>
+</body>
