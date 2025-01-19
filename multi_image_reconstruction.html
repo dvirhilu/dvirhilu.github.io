@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!--Title for the page-->
-    <title>Dvir Hilu Portfolio Homepage</title>
+    <title>Multi-Image 3D Reconstruction</title>
     <!--stylesheet reference-->
     <link rel="stylesheet" href="css/globals.css">
     <link rel="stylesheet" href="css/style.css">
@@ -25,15 +25,14 @@
             <li class="dropdown">
                 <button class="dropdownbtn">Projects <i class="nav-arrow"></i></button>
                 <div class="dropdown-content">
-                    <a href="capstone1.html">Capstone 1</a>
-                    <a href="multi_image_reconstruction.html">MIR</a>
-                    <a href="undergrad_thesis.html">Undergrad Thesis</a>
+                    <a href="undergrad_thesis.html">VirtioFS</a>
+                    <a href="multi_image_reconstruction.html">3D Scan</a>
+                    <a href="subbots.html">UBC Subbots</a>
                 </div>
             </li>
         </ul>
     </div>
     <i id="btnOpenNav" class="fa-solid fa-bars open-nav flex-container hide" style="color: white"></i>
-
 
 <h1>
     Signal Processing Project - 3D Reconstruction of Objects from Multiple Images
@@ -88,8 +87,8 @@ style="width:800px">
     Once corners are found, they were sorted in a tranformation-invariant order. This sorting ensures that the exact 
     same point in 3D space can be found across the different images. This sorting is demonstrated in the image below.
     Once the position of the corners was determined, the camera position and orientation were calculated using a
-    nonlinear least squares optimization. The camera parameters were used to re-project the corners onto the image, and
-    any images with high reprojection error were eliminated.
+    nonlinear least squares optimization. Finally, the camera parameters were used to re-project the corners onto the 
+    image, and any images with high reprojection error were discarded.
 </p>
 
 <img src="images/corner_sorting_vis.png" alt="Corner Sorting Visualized"
@@ -103,10 +102,10 @@ style="width:800px">
 <p>
     To reconstruct a point in 3D, the point must be located across at least two images. Feature matching (the process 
     of finding a common point between images of different perspectives) was done using the Scale-Invariant Feature
-    Transform (SIFT). Once a feature is matched across two or more images, the 3D coordinates of the point can be
-    found by solving a homogeneous linear system made from the 2D image points and the projection matrix. Once again,
-    these 3D points are re-projected to the images and eliminated if the reprojection error is too high. Finally,
-    the distribution of points across all 3 spatial coordinates is used to remove final outliers.
+    Transform (SIFT). Once a feature is matched across two or more images, the 3D coordinates of the point were found 
+    by solving a homogeneous linear system made from the 2D image points and the projection matrix. Once again, these 
+    3D points are re-projected to the images and discarded if the reprojection error is too high. Finally, the 
+    distribution of points across all 3 spatial coordinates is used to remove final outliers.
 </p>
 
 <h2>

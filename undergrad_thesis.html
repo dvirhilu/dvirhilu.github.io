@@ -25,44 +25,43 @@
             <li class="dropdown">
                 <button class="dropdownbtn">Projects <i class="nav-arrow"></i></button>
                 <div class="dropdown-content">
-                    <a href="capstone1.html">Capstone 1</a>
-                    <a href="multi_image_reconstruction.html">MIR</a>
-                    <a href="undergrad_thesis.html">Undergrad Thesis</a>
+                    <a href="undergrad_thesis.html">VirtioFS</a>
+                    <a href="multi_image_reconstruction.html">3D Scan</a>
+                    <a href="subbots.html">UBC Subbots</a>
                 </div>
             </li>
         </ul>
     </div>
     <i id="btnOpenNav" class="fa-solid fa-bars open-nav flex-container hide" style="color: white"></i>
 
-
     <h1>
-        Undergraduate Thesis - An Architecture to Allow Direct File-System Access on GPU
+        VirtioFS - An Architecture to Allow Direct File-System Access on GPU
     </h1>
 
-    <p>
-        Starting in late January 2022, I joined Dr. Alexandra (Sasha) Fedorova's research group to complete an 
-        undergraduate thesis. This page contains a brief summary of the work, and the paper is embedded at the bottom.
-    </p>
-
     <h2>
-        Background Information
+        Motivation
     </h2>
 
     <p>
-        The group identified a bottle neck in many modern workloads which require massive parallelization and data 
-        handling: Many of these workloads operate on hardware accelerators (such as GPUs), and use a centralized CPU 
-        only to coordinate and facilitate data transfers. Noting that many peripherals today have their own processors 
-        (SSDs, smart NICs, memory), the group envisioned a decentralized, CPU-less system, in which independent devices 
-        communicate together to execute workloads.
+        After taking a course with Dr. Alexandra (Sasha) Fedorova and gaining interest in her research work, I reached
+        out to her to work within her research group and complete an undergraduate thesis. This page provides a summary
+        of my work, and the full paper is embedded at the bottom.
     </p>
+
     <p>
-        As a first step to this vision, the team wanted to explore the possibility of direct communication over unified 
-        memory between a GPU and a file system implemented in the SSD. As a proof of concept, a hardware emulator was 
-        used to simulate the external file system, and I started the implementation of direct file access on the GPU 
-        side (named VirtioFS). I only had 4 months for the thesis, so I prioritized coming up with an architecture that 
-        can accomplish the task on the GPU, and writing simple proof of concept code for how this architecture that 
-        would interact with the hardware emulator.
+        Dr. Fedorova's group was working to create a decentralized, CPU-less system, in which independent devices 
+        communicate together to execute workloads. Such a system would be ideal for many modern workloads, which
+        require massive parallelization and data handling. Today, these workloads mainly operate on hardware
+        accelerators (such as GPUs), and use the CPU only for coordination and facilitating data transfer.
     </p>
+
+    <p>
+        My role within the research group was to devise a way to allow GPUs to directly access files from a storage
+        device over unified memory. I only had 5 months for the thesis, so I prioritized coming up with a software 
+        architecture for the library. As a simple proof of concept, I implemented this architecture in CUDA to 
+        communicate with a hardware emulator of a storage device previously set up by the group.
+    </p>
+
     <p>
         Before explaining the architecture, here are a few definitions relating to the GPU execution model that will be 
         relevant for later sections: 
@@ -199,8 +198,8 @@
     </h3>
 
     <p>
-        The data transfer and communication between the GPU and SSD (or emulator) is done via unified memory, accessible
-        from both devices. In work done before I joined, it was decided to follow <a
+        The data transfer and communication between the GPU and storage device (or emulator) is done via unified memory, 
+        accessible from both devices. In work done before I joined, it was decided to follow <a
             href="https://docs.oasis-open.org/virtio/virtio/v1.1/csprd01/virtio-v1.1-csprd01.html#x1-30001">Virtio</a>, a
         standard for I/O communication used mostly in virtual machines. The communication protocol operates over unified
         memory, with a section dedicated to an I/O command queue (where Virtio commands are placed and the handshake
@@ -212,16 +211,12 @@
         The unified memory buffer is further split into virtio queues (virtqueues) and command buffers. Virtqueues are a
         queue structure where device specific commands are placed. In this case, the virtqueues hold the file system
         specific commands. Any data that is transfered between the devices will be contained in the command buffers, and
-        will be pointed to by the virtqueue entry. An example of the SSD would tranverse the unified memory on a read
-        command is shown in the diagram below.
+        will be pointed to by the virtqueue entry. An example of how the storage device would tranverse the unified memory 
+        on a read command is shown in the diagram below.
     </p>
 
     <img src="images/virtio_comm_flow.png" alt="How SSD might tranverse unified memory for read command"
         style="width:800px">
-    <figcaption>
-        Simplified view of how the storage device might tranverse unified memory for read command. Starting at with the 
-        IO command, the device traverses the linked virtqueue entries and retrieves data from the command buffer.
-    </figcaption>
     </img>
 
     <p>
@@ -250,7 +245,7 @@
         Similarly to the virtqueue and buffers, each block has its own dedicated file table to prevent the need to
         synchronize file table accesses. Since the file table only takes up a small amount of memory, VirtioFS allocates
         the file table in shared memory for faster access. Under the hood of the interface layer, the FUSE layer utilizes
-        the parallelism of the GPU by coalescing operations on the unified memory buffer.
+        the parallelism of the GPU by coalescing memory operations on the unified buffer.
     </p>
 
     <h3>
