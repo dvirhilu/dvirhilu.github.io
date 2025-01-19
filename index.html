@@ -9,6 +9,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!--Title for the page-->
     <title>Dvir Hilu Portfolio Homepage</title>
+    <!--bootstrap-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
     <!--stylesheet reference-->
     <link rel="stylesheet" href="css/globals.css">
     <link rel="stylesheet" href="css/style.css">
@@ -35,8 +41,75 @@
     <i id="btnOpenNav" class="fa-solid fa-bars open-nav flex-container hide" style="color: white"></i>
 
     <!--Main-->
-    <main>
-        <h1>Dvir Hilu: Ligi Mans!</h1>
+    <main class="homepage-container">
+        <h1 class="title">Dvir Hilu: Ligi Mans!</h1>
+        <div id="projectsCarousel" class="carousel slide" data-bs-interval="false">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <div class="carousel-item-container">
+                        <!--Project 1-->
+                        <h2 class="d-block w-100 subtitle">VirtioFS</h2>
+                        <p>
+                            My role within the research group was to devise a way to allow GPUs to directly access files
+                            from a storage device over unified memory. I only had 5 months for the thesis, so I
+                            prioritized coming up with a software architecture for the library. As a simple proof of
+                            concept, I implemented this architecture in CUDA to communicate with a hardware emulator of
+                            a storage device previously set up by the group.
+                        </p>
+                        <a href="undergrad_thesis.html">See more <i class="fa-solid fa-arrow-right-long"></i></a>
+                        <br />
+                        <br />
+                        <img class="carousel-img" src="images/GPU_arch.png" alt="GPU hardware architecture">
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div class="carousel-item-container">
+                        <!--Project 2-->
+                        <h2 class="d-block w-100 subtitle">3D Scan</h2>
+                        <p>
+                            To learn more about and explore classical image processing techniques, I worked on a project
+                            to generate a 3D point cloud of an object from multiple images. I decided to use this
+                            project as the final project for one of my courses at UBC, and as a result wrote an IEEE
+                            style paper about it, which is embeded below. A summary of the work is given in this page,
+                            but for a full description of the developed algorithms, please refer to the attached paper.
+                        </p>
+                        <a href="multi_image_reconstruction.html">See more <i
+                                class="fa-solid fa-arrow-right-long"></i></a>
+                        <br />
+                        <br />
+                        <img class="carousel-img" src="images/corner_sorting_vis.png" alt="Corner Sorting Visualized">
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div class="carousel-item-container">
+                        <!--Project 3-->
+                        <h2 class="d-block w-100 subtitle">UBC Subbots</h2>
+                        <p>
+                            As team captain, I focused on expanding the technical capabilities of the robot for the new
+                            design. As a young team, the first revision of the robot was mostly focused on creating a
+                            functioning, driving AUV. For the new revision, I planned to add an acoustic localization
+                            system and actuators that will allow us to complete competition tasks beyond navigation. Due
+                            to the increase in design complexity, the team roughly doubled in size. To allow for a
+                            smooth transition, I focused on facilitating and ensuring good communications between
+                            sub-team leads, and held weekly status meetings to ensure sub-teams were up to date on each
+                            others' progress. The overall team structure is shown in the image below.
+                        </p>
+                        <a href="subbots.html">See more <i class="fa-solid fa-arrow-right-long"></i></a>
+                        <br />
+                        <br />
+                        <img class="carousel-img" src="images/acoustic_loc.PNG" alt="project dolphon system">
+                    </div>
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#projectsCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#projectsCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
     </main>
 </body>
 <!--Scripts-->
