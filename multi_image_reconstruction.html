@@ -35,10 +35,27 @@
     <i id="btnOpenNav" class="fa-solid fa-bars open-nav flex-container hide" style="color: white"></i>
     <!--Main-->
     <main id="wrapper">
+        <h1 class="title">
+            Signal Processing Project - 3D Reconstruction of Objects from Multiple Images
+        </h1>
+
         <section>
-            <h1 class="title">
-                Signal Processing Project - 3D Reconstruction of Objects from Multiple Images
-            </h1>
+            <h2>
+                Table of Contents
+            </h2>
+            <p>Motivation</p>
+            <p>Camera Calibration</p>
+            <p>Feature Matching and 3D Point Triangulation</p>
+            <p>Experiments and 3D Viewer</p>
+            <p>Main Challenges</p>
+            <p>IEEE Style Paper Report</p>
+
+        </section>
+
+        <section>
+            <h2>
+                Motivation
+            </h2>
 
             <p>
                 To learn more about and explore classical image processing techniques, I worked on a project to generate
@@ -200,6 +217,24 @@
                 </figcaption>
             </figure>
         </section>
+
+        <section>
+            <h2>
+                Main Challenge
+            </h2>
+
+            <p>
+                The main challenge of the project involved correctly detecting the background of the image for the
+                camera calibration. The initial Harris Corner detection algorithm detected a HUGE amount of false 
+                corners. I researched through multiple papers and textbooks for corner detection techniques, and
+                went through many design iterations before getting consistent results. Through those iterations, I was
+                able to make additional modifications and optimizations for maximum accuracy.
+            </p>
+        </section>
+
+        <h2>
+            IEEE Style Paper Report
+        </h2>
 
         <object data="embedations/multi_image_reconstruction.pdf" type="application/pdf" width="100%" height="1000px">
             <embed src="embedations/multi_image_reconstruction.pdf">

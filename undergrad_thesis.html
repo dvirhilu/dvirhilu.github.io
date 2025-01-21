@@ -38,21 +38,37 @@
         <h1 class="title">
             VirtioFS - An Architecture to Allow Direct File-System Access on GPU
         </h1>
+
+        <section>
+            <h2>
+                Table of Contents
+            </h2>
+            <p>Motivation</p>
+            <p>GPU Hardware Architecture Relevant Definitions</p>
+            <p>Summary of the Proposed Architecture for VirtioFS</p>
+            <p>&nbsp;&nbsp;&nbsp;&nbsp; Interface Layer</p>
+            <p>&nbsp;&nbsp;&nbsp;&nbsp; Unified Memory Allocation</p>
+            <p>&nbsp;&nbsp;&nbsp;&nbsp; FUSE Layer</p>
+            <p>&nbsp;&nbsp;&nbsp;&nbsp; Driver Layer</p>
+            <p>&nbsp;&nbsp;&nbsp;&nbsp; Example Flow for g_read Command</p>
+            <p>Main Challenges</p>
+            <p>Undergraduate Thesis Paper</p>
+
+        </section>
+
         <section>
             <h2 class="subtitle">
                 Motivation
             </h2>
 
             <p>
-                After taking a course with Dr. Alexandra (Sasha) Fedorova and gaining interest in her research work, I
-                reached
-                out to her to work within her research group and complete an undergraduate thesis. This page provides a
-                summary
-                of my work, and the full paper is embedded at the bottom.
+                After taking a course with Professor Alexandra (Sasha) Fedorova and gaining interest in her research work, I
+                reached out to her to work within her research group which eventually turned into an undergraduate 
+                thesis. This page provides a summary of my work, and the full paper is embedded at the bottom.
             </p>
 
             <p>
-                Dr. Fedorova's group was working to create a decentralized, CPU-less system, in which independent
+                Professor Fedorova's group was working to create a decentralized, CPU-less system, in which independent
                 devices
                 communicate together to execute workloads. Such a system would be ideal for many modern workloads, which
                 require massive parallelization and data handling. Today, these workloads mainly operate on hardware
@@ -75,9 +91,9 @@
             </p>
         </section>
         <section>
-            <h3 class="subtitle">
+            <h2 class="subtitle">
                 GPU Hardware Architecture Relevant Definitions
-            </h3>
+            </h2>
             <figure class="img-container">
                 <img class="img expand" src="images/GPU_arch.png" alt="GPU hardware architecture">
                 <figcaption>
@@ -348,6 +364,29 @@
                     Click to expand.
                 </figcaption>
             </figure>
+        </section>
+
+        <section>
+            <h2>
+                Main Challenges
+            </h2>
+    
+            <p>
+                The first big challenge I experienced was due to my inexperience with CUDA and working with GPUs, but I
+                was interested in the project and application, and eager to learn. Rather than rushing through it, I took
+                the first two weeks to get familiar with the architecture of the GPU in detail, and how CUDA fits into
+                that model. Apart from this, I think my multidisciplinary background helped give a fresh perspective, and
+                taking a deeper look at the GPU architecture at the beginning helped me consider it at every step. 
+            </p>
+            <p>    
+                The next challenge was related to the tradeoff between efficiency and memory. Synchronization and thread
+                divergence both have big performance impacts in GPUs, but avoiding synchronization meant threads must 
+                operate on separate memory to avoid race conditions. To tackle this problem, I broke up the process into
+                multiple steps, and considered the tradeoff at each of them, while keeping in mind the specific applications 
+                targeted by the research group. I designed the architecture to perform bulk data transfers in parallel, and
+                partitioned the memory so that blocks operate within their own memory space, while synchronizing short and
+                simple operations, such as constructing the virtqueues or creating the file table entries. 
+            </p>            
         </section>
 
         <h2>
